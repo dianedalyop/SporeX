@@ -4,13 +4,17 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.sporex_app.network.ProductSummary
 import com.example.sporex_app.network.RetrofitClient
@@ -63,34 +67,104 @@ private fun ProductsScreen(onSelect: (String) -> Unit) {
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Recommended Products") }) }
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Recommended Products",
+                        color = Color.Black
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
+                )
+            )
+        }
     ) { padding ->
-        Column(
+
+        Box(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp)
+                .background(Color(0xFF0F9D58))   // SporeX green
         ) {
-            when {
-                loading -> CircularProgressIndicator()
-                error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
-                else -> {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(products) { p ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onSelect(p.id) }
-                            ) {
-                                Column(Modifier.padding(16.dp)) {
-                                    Text(p.name, style = MaterialTheme.typography.titleMedium)
-                                    Spacer(Modifier.height(8.dp))
-                                    Text("Best for: ${p.best_for}")
-                                    Spacer(Modifier.height(8.dp))
-                                    Text(
-                                        text = if (p.sustainable) "Sustainable option ✅" else "Standard option",
-                                        style = MaterialTheme.typography.bodySmall
+
+            Card(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 3.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
+            ) {
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+
+                    when {
+                        loading -> Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+
+                        error != null -> Text(
+                            error!!,
+                            color = MaterialTheme.colorScheme.error
+                        )
+
+                        else -> LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(8.dp)
+                        ) {
+                            items(products) { p ->
+
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onSelect(p.id) },
+                                    shape = RoundedCornerShape(14.dp),
+                                    elevation = CardDefaults.cardElevation(4.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color.White
                                     )
+
+                                ) {
+
+                                    Column(Modifier.padding(16.dp)) {
+
+                                        Text(
+                                            p.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                                    color = Color.Black
+                                        )
+
+                                        Spacer(Modifier.height(8.dp))
+
+                                        Text(
+                                            text = "Best for: ${p.best_for}",
+                                            color = Color.Black
+                                        )
+
+                                        Spacer(Modifier.height(8.dp))
+
+                                        Text(
+                                            if (p.sustainable)
+                                                "Sustainable option ✅"
+                                            else
+                                                "Standard option",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF0F9D58)
+                                        )
+                                    }
                                 }
                             }
                         }

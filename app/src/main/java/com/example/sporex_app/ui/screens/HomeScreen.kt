@@ -74,23 +74,9 @@ fun HomeScreen(
 
                     CameraCard(onUploadClick = onUploadClick)
 
-                    // ✅ Products button placed inside the layout (safe)
-                    Button(
-                        onClick = onProductsClick,
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        )
-                    ) {
-                        Text("Products & Methods")
-                    }
 
                     // Optional spacing so it doesn’t hug the bottom
-                    Spacer(Modifier.height(12.dp))
+                  //  Spacer(Modifier.height(12.dp))
                 }
             }
         }

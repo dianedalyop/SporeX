@@ -18,6 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
+import androidx.compose.ui.platform.LocalContext
+import com.example.sporex_app.ui.components.ProductsActivity
+import com.example.sporex_app.ui.components.UploadActivity
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 
 class ResultActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,11 +71,13 @@ class ResultActivity : ComponentActivity() {
 
 @Composable
 fun MoldResultScreen() {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
+
     ) {
         // Mold Detected Alert
         Row(
@@ -122,6 +129,24 @@ fun MoldResultScreen() {
         ) {
             Text("Ask Question")
         }
+
+        // ✅ Products button placed inside the layout (safe)
+        Button(
+            onClick = {
+                context.startActivity(Intent(context, ProductsActivity::class.java))
+            },
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF06A546),
+                contentColor = Color.Black
+            )
+        ) {
+            Text("View More Remedies")
+        }
+
     }
 }
 
