@@ -16,7 +16,7 @@ object RetrofitClient {
 private const val BASE_URL = "https://sporex.onrender.com/"
 
     private val logging = HttpLoggingInterceptor().apply {
-      level = HttpLoggingInterceptor.Level.BODY
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val httpClient = OkHttpClient.Builder()
