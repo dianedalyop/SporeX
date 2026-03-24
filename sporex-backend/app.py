@@ -9,6 +9,8 @@ from pymongo import MongoClient
 from passlib.context import CryptContext
 from datetime import datetime, timezone
 import random
+import smtplib
+from email.mime.text import MIMEText
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
@@ -196,19 +198,19 @@ async def register(body: RegisterBody):
         "role": "member",
         "status": "active",
         "is_verified": False,
+        "otp": otp,
+        "otp_expiry": datetime.now(timezone.utc) + timedelta(minutes=10),
         "created_at": datetime.now(timezone.utc),
 
         "settings": {
-        "dark_mode": False,
-        "notifications_enabled": True,
-        "data_personalisation": True,
-        "otp": otp,
-        "otp_expiry": datetime.now(timezone.utc) + timedelta(minutes=10),
-        "app_customisation": {
-            "accent_color": "green",
-            "layout_style": "default"
-        
-           }
+            "dark_mode": False,
+            "notifications_enabled": True,
+            "data_personalisation": True,
+            "app_customisation": {
+                "accent_color": "green",
+                "layout_style": "default"
+            }
+        }
     }
 
 }
@@ -218,6 +220,7 @@ async def register(body: RegisterBody):
         user_doc["name"] = body.name
 
     users_col.insert_one(user_doc)
+    send_otp_email(body.email, otp)
     return {"success": True, "message": "User registered"}
 
 @app.post("/api/login")
