@@ -395,7 +395,9 @@ def send_otp_email(to_email: str, otp: str):
 
     try:
         print("Connecting to SMTP...")
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            print("Starting TLS...")
+            server.starttls()
             print("Logging in...")
             server.login(sender_email, app_password)
             print("Sending email...")
