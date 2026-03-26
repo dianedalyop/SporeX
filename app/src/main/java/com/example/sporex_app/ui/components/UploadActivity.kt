@@ -10,19 +10,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.*
 import androidx.activity.result.contract.ActivityResultContracts
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Color
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.LayoutDirection
 import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
+import com.example.sporex_app.ui.theme.SPOREX_AppTheme
 
 
 class UploadActivity : ComponentActivity() {
@@ -30,173 +27,165 @@ class UploadActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val context = this@UploadActivity
+            SPOREX_AppTheme {
+                val context = this@UploadActivity
 
-            Scaffold(
-                bottomBar = { BottomNavBar(currentScreen = "camera") },
-                containerColor = Color.White
-            ) { paddingValues ->
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFF06A546)) // FULL SCREEN GREEN
-                        .padding(
-                            bottom = paddingValues.calculateBottomPadding(),
-                            start = paddingValues.calculateStartPadding(LayoutDirection.Ltr),
-                            end = paddingValues.calculateEndPadding(LayoutDirection.Ltr)
-                        )
-                ) {
-
-                    Column(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        TopBar()
-
-                        // UploadScreen sits inside the green background
-                        UploadScreen(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(24.dp),
-                            onBack = { finish() },
-                            onNext = { uri ->
-                                val intent = Intent(context, ConfirmationActivity::class.java)
-                                intent.putExtra("imageUri", uri.toString())
-                                startActivity(intent)
-                            }
-                        )
-                    }
+                Scaffold(
+                    topBar = {
+                         Surface(color = MaterialTheme.colorScheme.surface) {
+                            TopBar()
+                        }
+                    },
+                    bottomBar = {
+                         Surface(color = MaterialTheme.colorScheme.surface) {
+                            BottomNavBar(currentScreen = "camera")
+                        }
+                    },
+                     containerColor = MaterialTheme.colorScheme.primary,
+                ) { paddingValues ->
+                    UploadScreen(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        onBack = { finish() },
+                        onNext = { uri ->
+                            val intent = Intent(context, ConfirmationActivity::class.java)
+                            intent.putExtra("imageUri", uri.toString())
+                            startActivity(intent)
+                        }
+                    )
                 }
             }
         }
     }
 }
-            @Composable
-            fun UploadScreen(
-                modifier: Modifier = Modifier,
-                onBack: () -> Unit,
-                onNext: (Uri) -> Unit
-            ) {
-                var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-                val launcher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.GetContent()
-                ) { uri ->
-                    selectedImageUri = uri
+@Composable
+fun UploadScreen(
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
+    onNext: (Uri) -> Unit
+) {
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri -> selectedImageUri = uri }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(30.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Back button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    TextButton(onClick = onBack) {
+                        Text("← Back", color = MaterialTheme.colorScheme.onSurface)
+                    }
                 }
 
-                Column(
-                    modifier = modifier
-                        .fillMaxSize()
-                        .background(Color(0xFF06A546))
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Spacer(Modifier.height(10.dp))
 
-                    // Back button (clear label for accessibility)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
+                Text(
+                    "Upload Mould Image",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    "Tap the box below to choose a photo from your device. Make sure the mould is clearly visible.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                // Upload Box Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                    onClick = { launcher.launch("image/*") }
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        TextButton(
-                            onClick = onBack
-                        ) {
-                            Text(
-                                text = "← Back",
-                                color = Color.Black
+                        if (selectedImageUri == null) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "Tap to upload a photo",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    "Supported formats: JPG or PNG",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                )
+                            }
+                        } else {
+                            Image(
+                                painter = rememberAsyncImagePainter(selectedImageUri),
+                                contentDescription = "Selected image",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }
+                }
 
-                    Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
 
+                if (selectedImageUri != null) {
                     Text(
-                        text = "Upload Mould Image",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.Black
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-
-                    Text(
-                        text = "Tap the box below to choose a photo from your device. Make sure the mould is clearly visible.",
+                        "Image selected. Press Continue to proceed.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black.copy(alpha = 0.85f)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                }
 
-                    Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(20.dp))
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        onClick = { launcher.launch("image/*") }
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (selectedImageUri == null) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = "Tap to upload a photo",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = Color.Black
-                                    )
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(
-                                        text = "Supported formats: JPG or PNG",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.Gray
-                                    )
-                                }
-                            } else {
-                                Image(
-                                    painter = rememberAsyncImagePainter(selectedImageUri),
-                                    contentDescription = "Selected image of mould for analysis",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(Modifier.height(20.dp))
-
-                    // Helper text after selection
-                    if (selectedImageUri != null) {
-                        Text(
-                            text = "Image selected. Press Continue to proceed.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Black
-                        )
-                    }
-
-                    Spacer(Modifier.height(20.dp))
-
-                    Button(
-                        onClick = { selectedImageUri?.let(onNext) },
-                        enabled = selectedImageUri != null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Black,
-                            disabledContainerColor = Color.Black.copy(alpha = 0.4f)
-                        )
-                    ) {
-                        Text(
-                            text = "Continue",
-                            color = Color.White
-                        )
-                    }
+                Button(
+                    onClick = { selectedImageUri?.let(onNext) },
+                    enabled = selectedImageUri != null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                    )
+                ) {
+                    Text("Continue")
                 }
             }
-
-
-
+        }
+    }
+}

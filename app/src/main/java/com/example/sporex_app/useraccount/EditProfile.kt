@@ -36,7 +36,6 @@ import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
 
 class EditProfileActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -44,20 +43,20 @@ class EditProfileActivity : ComponentActivity() {
         val currentEmail = intent.getStringExtra("email") ?: ""
 
 
+        val isDarkMode = com.example.sporex_app.utils.isDarkMode(this)
+
         setContent {
-            SPOREX_AppTheme {
+            SPOREX_AppTheme(darkTheme = isDarkMode) {
                 EditProfileScreen(
                     currentUsername = currentUsername,
                     currentEmail = currentEmail,
                     onBack = { finish() },
                     onSave = { updatedUsername, updatedEmail, updatedPassword ->
-
                         val resultIntent = Intent().apply {
                             putExtra("username", updatedUsername)
                             putExtra("email", updatedEmail)
                             putExtra("password", updatedPassword)
                         }
-
                         setResult(Activity.RESULT_OK, resultIntent)
                         finish()
                     }
@@ -67,6 +66,8 @@ class EditProfileActivity : ComponentActivity() {
     }
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
@@ -75,7 +76,6 @@ fun EditProfileScreen(
     onBack: () -> Unit,
     onSave: (String, String, String) -> Unit
 ) {
-
     var username by remember { mutableStateOf(currentUsername) }
     var email by remember { mutableStateOf(currentEmail) }
     var password by remember { mutableStateOf("") }
@@ -84,54 +84,58 @@ fun EditProfileScreen(
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        profileImageUri = uri
-    }
+    ) { uri -> profileImageUri = uri }
+
+    val colors = MaterialTheme.colorScheme
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Edit Profile",
-                        color = colorResource(id = R.color.sporex_green)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = colorResource(id = R.color.sporex_green)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black
-                )
-            )
-        }
+        topBar = { TopBar() },
+        bottomBar = { BottomNavBar(currentScreen = "settings") },
+        containerColor = colors.background
     ) { padding ->
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(padding)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // Avatar picker (single component)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = colors.onBackground
+                    )
+                }
+
+                Text(
+                    text = "Edit Profile",
+                    color = colors.onBackground,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Avatar picker
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(RoundedCornerShape(60.dp))
-                    .background(colorResource(id = R.color.sporex_grey))
+                    .background(colors.surface.copy(alpha = 0.25f))
                     .clickable { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-
                 if (profileImageUri != null) {
                     AsyncImage(
                         model = profileImageUri,
@@ -142,43 +146,39 @@ fun EditProfileScreen(
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Profile Icon",
-                        tint = Color.White,
+                        tint = colors.onSurface,
                         modifier = Modifier.size(60.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(32.dp))
 
-            OutlinedTextField(
+            RoundedTextField(
                 value = username,
+                label = "Username",
                 onValueChange = { username = it },
-                label = { Text("Username") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                colors = colors
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
+            RoundedTextField(
                 value = email,
+                label = "Email",
                 onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                colors = colors
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
             if (showError) {
                 Text(
                     text = "Username and Email cannot be empty",
-                    color = Color.Red,
+                    color = colors.error,
                     fontSize = 14.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(32.dp))
 
             Button(
                 onClick = {
@@ -191,18 +191,73 @@ fun EditProfileScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(14.dp),
+                    .height(56.dp),
+                shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(id = R.color.sporex_green),
-                    contentColor = Color.White
+                    containerColor = colors.primary,
+                    contentColor = colors.onPrimary
                 )
             ) {
-                Text("Save Changes", fontSize = 18.sp)
+                Text("Save Changes", fontSize = 17.sp)
             }
         }
     }
 }
+
+
+@Composable
+fun RoundedTextField(
+    value: String,
+    label: String,
+    onValueChange: (String) -> Unit,
+    colors: ColorScheme
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, color = colors.onSurface) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        shape = RoundedCornerShape(18.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.primary,
+            unfocusedBorderColor = colors.onSurface.copy(alpha = 0.5f),
+            cursorColor = colors.onSurface,
+            focusedTextColor = colors.onSurface,
+            unfocusedTextColor = colors.onSurface,
+            focusedContainerColor = colors.surface.copy(alpha = 0.25f),
+            unfocusedContainerColor = colors.surface.copy(alpha = 0.18f)
+        )
+    )
+}
+
+@Composable
+fun RoundedPasswordField(
+    value: String,
+    label: String,
+    onValueChange: (String) -> Unit,
+    colors: ColorScheme
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, color = colors.onBackground) },
+        visualTransformation = PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        shape = RoundedCornerShape(18.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.onBackground,
+            unfocusedBorderColor = colors.onBackground.copy(alpha = 0.5f),
+            cursorColor = colors.onBackground,
+            focusedTextColor = colors.onBackground,
+            unfocusedTextColor = colors.onBackground,
+            focusedContainerColor = colors.surface.copy(alpha = 0.25f),
+            unfocusedContainerColor = colors.surface.copy(alpha = 0.18f)
+        )
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -216,10 +271,12 @@ fun EditPasswordScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var passwordStrength by remember { mutableStateOf(0f) }
 
+    val colors = MaterialTheme.colorScheme
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomNavBar(currentScreen = "settings") },
-        containerColor = colorResource(id = R.color.sporex_black)
+        containerColor = colors.background
     ) { padding ->
 
         Column(
@@ -242,12 +299,12 @@ fun EditPasswordScreen(
                     Icon(
                         Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = colorResource(id = R.color.sporex_white)
+                        tint = colors.onBackground
                     )
                 }
                 Text(
                     text = "Change Password",
-                    color = colorResource(id = R.color.sporex_white),
+                    color = colors.onBackground,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 4.dp)
@@ -256,7 +313,7 @@ fun EditPasswordScreen(
 
             Text(
                 text = "Keep your account secure by updating your password.",
-                color = Color.White,
+                color = colors.onBackground,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -266,7 +323,8 @@ fun EditPasswordScreen(
             RoundedPasswordField(
                 value = currentPassword,
                 label = "Current Password",
-                onValueChange = { currentPassword = it }
+                onValueChange = { currentPassword = it },
+                colors = colors
             )
 
             Spacer(Modifier.height(16.dp))
@@ -277,24 +335,26 @@ fun EditPasswordScreen(
                 onValueChange = {
                     newPassword = it
                     passwordStrength = calculatePasswordStrength(it)
-                }
+                },
+                colors = colors
             )
 
             Spacer(Modifier.height(12.dp))
 
-            PasswordStrengthBar(passwordStrength)
+            PasswordStrengthBar(strength = passwordStrength, colors = colors)
 
             Spacer(Modifier.height(16.dp))
 
             RoundedPasswordField(
                 value = confirmPassword,
                 label = "Confirm New Password",
-                onValueChange = { confirmPassword = it }
+                onValueChange = { confirmPassword = it },
+                colors = colors
             )
 
             errorMessage?.let {
                 Spacer(Modifier.height(12.dp))
-                Text(it, color = Color(0xFFFFB3B3), fontSize = 14.sp)
+                Text(it, color = colors.error, fontSize = 14.sp)
             }
 
             Spacer(Modifier.height(32.dp))
@@ -324,8 +384,8 @@ fun EditPasswordScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(id = R.color.sporex_green),
-                    contentColor = Color.Black
+                    containerColor = colors.primary,
+                    contentColor = colors.onPrimary
                 )
             ) {
                 Text("Update Password", fontSize = 17.sp)
@@ -334,6 +394,35 @@ fun EditPasswordScreen(
     }
 }
 
+@Composable
+fun PasswordStrengthBar(strength: Float, colors: androidx.compose.material3.ColorScheme) {
+    val animatedWidth by animateFloatAsState(
+        targetValue = strength,
+        label = "strengthAnim"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .clip(RoundedCornerShape(50.dp))
+            .background(colors.surface.copy(alpha = 0.25f))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(animatedWidth)
+                .background(
+                    when {
+                        strength < 0.34f -> colors.error
+                        strength < 0.67f -> colors.secondary
+                        else -> colors.primary
+                    }
+                )
+                .clip(RoundedCornerShape(50.dp))
+        )
+    }
+}
 
 
     @Composable
@@ -418,6 +507,7 @@ class EditPasswordActivity : ComponentActivity() {
                         val resultIntent = Intent().apply {
                             putExtra("new_password", newPassword)
                         }
+
 
                         setResult(Activity.RESULT_OK, resultIntent)
                         finish()

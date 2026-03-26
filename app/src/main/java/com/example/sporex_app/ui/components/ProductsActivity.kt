@@ -20,6 +20,13 @@ import com.example.sporex_app.network.ProductSummary
 import com.example.sporex_app.network.RetrofitClient
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import com.example.sporex_app.ui.navigation.BottomNavBar
+import com.example.sporex_app.ui.navigation.TopBar
+
 
 class ProductsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,9 +47,10 @@ class ProductsActivity : ComponentActivity() {
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProductsScreen(onSelect: (String) -> Unit) {
+fun ProductsScreen(onSelect: (String) -> Unit) {
     val scope = rememberCoroutineScope()
 
     var products by remember { mutableStateOf<List<ProductSummary>>(emptyList()) }
@@ -174,3 +182,5 @@ private fun ProductsScreen(onSelect: (String) -> Unit) {
         }
     }
 }
+
+

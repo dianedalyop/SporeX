@@ -114,7 +114,6 @@ fun MoldResultScreen() {
             onClick = { Toast.makeText(null, "Viewing Service Details", Toast.LENGTH_SHORT).show() }
         )
 
-        Spacer(Modifier.height(12.dp))
 
         Button(
             onClick = { Toast.makeText(null, "Ask Question clicked", Toast.LENGTH_SHORT).show() },

@@ -9,18 +9,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.sporex_app.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.sp
 import com.example.sporex_app.ui.theme.TopBarFont
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.LocalContext
 import com.example.sporex_app.ui.alerts.NotificationsActivity
 
@@ -30,19 +29,22 @@ fun TopBar() {
     val context = LocalContext.current
 
     Column {
+
+        // Status bar padding
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
-                .background(colorResource(id = R.color.sporex_grey))
+                .background(MaterialTheme.colorScheme.background) // BLACK
         )
 
+        // Main top bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(88.dp)
                 .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
-                .background(colorResource(id = R.color.sporex_grey))
+                .background(MaterialTheme.colorScheme.background) // BLACK
         ) {
             Row(
                 modifier = Modifier
@@ -51,13 +53,14 @@ fun TopBar() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 Spacer(modifier = Modifier.width(28.dp))
 
                 Text(
                     text = "SPOREX",
                     fontFamily = TopBarFont,
                     fontSize = 32.sp,
-                    color = colorResource(id = R.color.sporex_green)
+                    color = MaterialTheme.colorScheme.primary // GREEN
                 )
 
                 Icon(
@@ -66,11 +69,9 @@ fun TopBar() {
                     modifier = Modifier
                         .size(28.dp)
                         .clickable {
-                            // Navigate to NotificationsActivity
-                            val intent = Intent(context, NotificationsActivity::class.java)
-                            context.startActivity(intent)
+                            context.startActivity(Intent(context, NotificationsActivity::class.java))
                         },
-                    tint = colorResource(id = R.color.sporex_green)
+                    tint = MaterialTheme.colorScheme.primary // GREEN
                 )
             }
         }
