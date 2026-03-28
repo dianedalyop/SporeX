@@ -16,22 +16,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sporex_app.ui.navigation.TopBar
-import androidx.compose.foundation.layout.statusBarsPadding
-
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier.fillMaxSize(),
     onUploadClick: () -> Unit,
-    onProductsClick: () -> Unit
+    onProductsClick: () -> Unit,
+    onHistoryClick: () -> Unit
 ) {
-
-
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF06A546))
-
+            .background(MaterialTheme.colorScheme.primary)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -39,8 +35,8 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = Color(0xFF06A546),
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(topStart = 35.dp, topEnd = 35.dp)
             ) {
                 Column(
@@ -48,11 +44,10 @@ fun HomeScreen(
                         .fillMaxSize()
                         .padding(top = 16.dp, bottom = 12.dp)
                 ) {
-//                    Spacer(Modifier.height(16.dp))
 
                     Text(
                         text = "Welcome Back!",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier.padding(start = 20.dp)
@@ -60,13 +55,13 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(20.dp))
 
-                    PreviousCaseCard()
+                    PreviousCaseCard(onClick = onHistoryClick)
 
                     Spacer(Modifier.height(20.dp))
 
                     Text(
                         text = "Scan For Mould",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier.padding(start = 20.dp)
@@ -74,23 +69,9 @@ fun HomeScreen(
 
                     CameraCard(onUploadClick = onUploadClick)
 
-                    // ✅ Products button placed inside the layout (safe)
-                    Button(
-                        onClick = onProductsClick,
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        )
-                    ) {
-                        Text("Products & Methods")
-                    }
 
                     // Optional spacing so it doesn’t hug the bottom
-                    Spacer(Modifier.height(12.dp))
+                  //  Spacer(Modifier.height(12.dp))
                 }
             }
         }
@@ -105,47 +86,44 @@ private fun CameraCard(onUploadClick: () -> Unit) {
     ) {
         Spacer(Modifier.height(20.dp))
 
-        Box(
+        Card(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
                 .fillMaxWidth()
-                .clickable { onUploadClick() }
+                .height(180.dp)
+                .clickable { onUploadClick() },
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .height(180.dp)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.CameraAlt,
-                        contentDescription = "Camera",
-                        tint = Color.Black,
-                        modifier = Modifier
-                            .size(120.dp)
-                            .offset(y = 6.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Filled.CameraAlt,
+                    contentDescription = "Camera",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(120.dp)
+                )
             }
         }
 
         Spacer(Modifier.height(20.dp))
     }
 }
-
 @Composable
-private fun PreviousCaseCard() {
+private fun PreviousCaseCard(onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .padding(horizontal = 20.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
@@ -155,7 +133,8 @@ private fun PreviousCaseCard() {
 
                 Text(
                     text = "Previous Case",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -163,19 +142,21 @@ private fun PreviousCaseCard() {
                 Text(
                     text = "65%",
                     fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = "SPOREX has detected 65% exposure of Trichoderma in your home.",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(Modifier.height(4.dp))
 
                 Text(
                     text = "Click for more information",
-                    color = Color(0xFF06A546),
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -189,7 +170,7 @@ private fun PreviousCaseCard() {
                 Icon(
                     imageVector = Icons.Filled.PlayArrow,
                     contentDescription = "View Case",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }

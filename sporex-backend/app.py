@@ -8,9 +8,14 @@ from pydantic import BaseModel, EmailStr
 from pymongo import MongoClient
 from passlib.context import CryptContext
 from datetime import datetime, timezone
-
+import random
+import requests
+import smtplib
+from email.mime.text import MIMEText
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
+
 
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -120,6 +125,8 @@ class ReplyCreateBody(BaseModel):
     user_name: str
     content: str
 
+# ------------- meghan's settings endpoints -------------
+
 class SettingsModel(BaseModel):
     dark_mode: bool
     notifications_enabled: bool
@@ -130,6 +137,38 @@ class SettingsModel(BaseModel):
 class UpdateSettingsBody(BaseModel):
     email: EmailStr
     settings: SettingsModel
+
+@app.get("/api/settings/{email}")
+async def get_settings(email: str):
+    user = users_col.find_one({"email": email})
+
+    if not user:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "User not found"},
+        )
+
+    return {
+        "success": True,
+        "settings": user.get("settings", {})
+    }
+
+@app.put("/api/settings")
+async def update_settings(body: UpdateSettingsBody):
+    result = users_col.update_one(
+        {"email": body.email},
+        {"$set": {"settings": body.settings.dict()}}
+    )
+
+    if result.matched_count == 0:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "User not found"},
+        )
+
+    return {"success": True, "message": "Settings updated"}
+
+    
 
 # ---------- Routes ----------
 @app.get("/api/health", response_model=BasicResponse)
@@ -152,30 +191,37 @@ async def register(body: RegisterBody):
     password_hash = hash_password(body.password)
 
     # 4) Build document
+    otp = generate_otp()
     user_doc = {
         "email": body.email,
         "username": username,
         "password_hash": password_hash,
         "role": "member",
         "status": "active",
+        "is_verified": False,
+        "otp": otp,
+        "otp_expiry": datetime.now(timezone.utc) + timedelta(minutes=10),
         "created_at": datetime.now(timezone.utc),
 
         "settings": {
-        "dark_mode": False,
-        "notifications_enabled": True,
-        "data_personalisation": True,
-        "app_customisation": {
-            "accent_color": "green",
-            "layout_style": "default"
-        
-           }
+            "dark_mode": False,
+            "notifications_enabled": True,
+            "data_personalisation": True,
+            "app_customisation": {
+                "accent_color": "green",
+                "layout_style": "default"
+            }
+        }
     }
-}
+
+
+
 
     if body.name:
         user_doc["name"] = body.name
 
     users_col.insert_one(user_doc)
+    send_otp_email(body.email, otp)
     return {"success": True, "message": "User registered"}
 
 @app.post("/api/login")
@@ -194,6 +240,14 @@ async def login(body: LoginBody):
             content={"success": False, "message": "Invalid credentials"},
         )
 
+
+
+# keeping already existing users
+    if not user.get("is_verified", True):
+        return JSONResponse(
+            status_code=403,
+            content={"success": False, "message": "Please verify your email"}
+        )
     # (Optional) return basic user info for the app
     return {
         "success": True,
@@ -318,6 +372,39 @@ async def add_reply(post_id: str, body: ReplyCreateBody):
         "message": "Reply added to post"
     }
 
+
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+
+
+
+
+def send_otp_email(to_email: str, otp: str):
+    api_key = os.getenv("RESEND_API_KEY")
+
+    print("DEBUG RESEND KEY:", "SET" if api_key else "NOT SET")
+
+    try:
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": "SporeX <onboarding@resend.dev>",
+                "to": [to_email],
+                "subject": "SporeX Email Verification",
+                "html": f"<p>Your verification code is: <strong>{otp}</strong></p>",
+            },
+        )
+
+        print("Email response:", response.text)
+
+    except Exception as e:
+        print("❌ Email error:", e)
 # ----------------------------
 # Settings ENDPOINTS
 # enabling darkmode, profile delete access, log out , navigate to device page

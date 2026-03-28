@@ -16,33 +16,31 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SPOREX_App">
 
-        <activity android:name=".useraccount.RegisterActivity" android:exported="true" />
+        <activity android:name=".useraccount.RegisterActivity" />
         <activity android:name=".ui.components.UploadActivity" />
         <activity android:name=".ui.components.ConfirmationActivity" />
         <activity android:name=".ui.components.ResultActivity" />
         <activity android:name=".useraccount.ProfileActivity" />
         <activity android:name=".useraccount.UserSettings" />
-        <activity android:name=".useraccount.LoginActivity" />
+<!--        <activity android:name=".useraccount.LoginActivity" />-->
         <activity android:name=".ui.components.ProductsActivity" />
         <activity android:name=".ui.components.ProductDetailActivity" />
         <activity android:name=".ui.community.MyPostsActivity" />
         <activity android:name=".ui.community.CommunityHP" />
         <activity android:name=".ui.community.AsthmaSociety" />
         <activity android:name=".ui.community.CreatePostActivity" />
+        <activity android:name=".useraccount.EditProfileActivity" />
+        <activity android:name=".useraccount.YourAccountActivity" />
+        <activity android:name=".useraccount.EditPasswordActivity" />
+        <activity android:name=".ui.alerts.NotificationsActivity" />
+        <activity android:name=".ui.components.HistoryActivity" />
+        <activity android:name=".ui.device.DeviceActivity" />
+
+<!--        <activity android:name=".MainActivity" />-->
 
 
-<!--        <activity-->
-<!--            android:name=".MainActivity"-->
-<!--            android:exported="true"-->
-<!--            android:theme="@style/Theme.SPOREX_App">-->
 
-
-
-<!--        </activity>-->
-
-        <activity
-            android:name=".ui.device.DeviceActivity"
-            android:exported="true" />
+        <!--            android:name=".useraccount.LoginActivity"-->
 
         <activity
             android:name=".MainActivity"
@@ -57,5 +55,6 @@
         </activity>
 
     </application>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
 </manifest>
