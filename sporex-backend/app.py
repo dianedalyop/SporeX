@@ -213,7 +213,6 @@ async def ingest_reading(
     if not DEVICE_INGEST_TOKEN or x_device_token != DEVICE_INGEST_TOKEN:
         raise HTTPException(status_code=401, detail="Unauthorized device")
 
-    # ✅ safer ts handling
     device_dt = (
         datetime.fromtimestamp(body.ts, tz=timezone.utc)
         if body.ts is not None
