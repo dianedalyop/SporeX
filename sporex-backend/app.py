@@ -26,6 +26,7 @@ print("DEBUG ENV CHECK")
 
 
 # ---------- Password hashing utils ----------
+# Use PBKDF2-SHA256 instead of bcrypt to avoid backend issues
 pwd_context = CryptContext(
     schemes=["pbkdf2_sha256"],
     deprecated="auto",
@@ -66,6 +67,7 @@ app = FastAPI(
     version="0.2.0",
 )
 
+# CORS – Android isn’t a browser, but this also helps if you later add a web UI
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -153,6 +155,7 @@ class ReplyCreateBody(BaseModel):
     user_name: str
     content: str
 
+# ------------- meghan's settings endpoints -------------
 
 class SettingsModel(BaseModel):
     dark_mode: bool
@@ -165,6 +168,37 @@ class UpdateSettingsBody(BaseModel):
     email: EmailStr
     settings: SettingsModel
 
+@app.get("/api/settings/{email}")
+async def get_settings(email: str):
+    user = users_col.find_one({"email": email})
+
+    if not user:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "User not found"},
+        )
+
+    return {
+        "success": True,
+        "settings": user.get("settings", {})
+    }
+
+@app.put("/api/settings")
+async def update_settings(body: UpdateSettingsBody):
+    result = users_col.update_one(
+        {"email": body.email},
+        {"$set": {"settings": body.settings.dict()}}
+    )
+
+    if result.matched_count == 0:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "User not found"},
+        )
+
+    return {"success": True, "message": "Settings updated"}
+
+    
 # prediction response models
 class DetectionBox(BaseModel):
     class_name: str
@@ -228,7 +262,6 @@ def validate_image_file(saved_path: Path):
         raise HTTPException(
             status_code=400, detail="Uploaded file is not a valid image"
         )
-
 
 # ---------- Routes ----------
 @app.get("/api/health", response_model=BasicResponse)
@@ -381,36 +414,70 @@ def get_product(product_id: str):
 # ---------- Posts ----------
 @app.post("/api/posts", response_model=BasicResponse)
 async def create_post(body: PostCreateBody):
+    """Create a new post"""
     post_doc = {
         "user_name": body.user_name,
         "post_name": body.post_name,
         "content": body.content,
         "created_at": datetime.now(timezone.utc),
-        "replies": [],
+        "replies": []
     }
     result = posts_col.insert_one(post_doc)
-    return {"success": True, "message": f"Post created with ID: {result.inserted_id}"}
-
+    return {
+        "success": True,
+        "message": f"Post created with ID: {result.inserted_id}"
+    }
 
 @app.get("/api/posts")
 async def list_posts():
-    posts = list(posts_col.find({}, {"_id": 0}))
-    return posts
+    posts = []
+    for post in posts_col.find():
+        replies = []
+        for reply in post.get("replies", []):
+            replies.append({
+                "user_name": reply.get("user_name", ""),
+                "content": reply.get("content", ""),
+                "created_at": reply.get("created_at").isoformat() if reply.get("created_at") else None
+            })
 
+        posts.append({
+            "id": str(post["_id"]),
+            "user_name": post.get("user_name", ""),
+            "post_name": post.get("post_name", ""),
+            "content": post.get("content", ""),
+            "created_at": post.get("created_at").isoformat() if post.get("created_at") else None,
+            "replies": replies
+        })
+    return posts
 
 @app.get("/api/posts/{post_id}")
 async def get_post(post_id: str):
     from bson import ObjectId
 
     try:
-        post = posts_col.find_one({"_id": ObjectId(post_id)}, {"_id": 0})
-    except Exception:
+        post = posts_col.find_one({"_id": ObjectId(post_id)})
+    except:
         raise HTTPException(status_code=400, detail="Invalid post ID")
 
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    return post
 
+    replies = []
+    for reply in post.get("replies", []):
+        replies.append({
+            "user_name": reply.get("user_name", ""),
+            "content": reply.get("content", ""),
+            "created_at": reply.get("created_at").isoformat() if reply.get("created_at") else None
+        })
+
+    return {
+        "id": str(post["_id"]),
+        "user_name": post.get("user_name", ""),
+        "post_name": post.get("post_name", ""),
+        "content": post.get("content", ""),
+        "created_at": post.get("created_at").isoformat() if post.get("created_at") else None,
+        "replies": replies
+    }
 
 @app.post("/api/posts/{post_id}/replies", response_model=BasicResponse)
 async def add_reply(post_id: str, body: ReplyCreateBody):
@@ -418,19 +485,20 @@ async def add_reply(post_id: str, body: ReplyCreateBody):
 
     try:
         post_id_obj = ObjectId(post_id)
-    except Exception:
+    except:
         raise HTTPException(status_code=400, detail="Invalid post ID")
 
     reply_doc = {
         "user_name": body.user_name,
         "content": body.content,
-        "created_at": datetime.now(timezone.utc),
+        "created_at": datetime.now(timezone.utc)
     }
-
+    
     result = posts_col.update_one(
-        {"_id": post_id_obj}, {"$push": {"replies": reply_doc}}
+        {"_id": post_id_obj},
+        {"$push": {"replies": reply_doc}}
     )
-
+    
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Post not found")
 
@@ -547,6 +615,44 @@ async def predict_image(
     except Exception as e:
         print("DEBUG predict error:", str(e))
         raise HTTPException(status_code=500, detail=f"Inference failed: {str(e)}")
+
+
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+
+
+
+
+def send_otp_email(to_email: str, otp: str):
+    api_key = os.getenv("RESEND_API_KEY")
+
+    print("DEBUG RESEND KEY:", "SET" if api_key else "NOT SET")
+
+    try:
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": "SporeX <onboarding@resend.dev>",
+                "to": [to_email],
+                "subject": "SporeX Email Verification",
+                "html": f"<p>Your verification code is: <strong>{otp}</strong></p>",
+            },
+        )
+
+        print("Email response:", response.text)
+
+    except Exception as e:
+        print("❌ Email error:", e)
+# ----------------------------
+# Settings ENDPOINTS
+# enabling darkmode, profile delete access, log out , navigate to device page
+# ----------------------------
 
 # Optional: get scan history for a user
 @app.get("/api/scans/{email}")

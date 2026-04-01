@@ -40,6 +40,21 @@ interface SporexApi {
         @Body request: UpdateSettingsRequest
     ): BasicResponse
 
+    @GET("api/posts")
+    suspend fun getPosts(): Response<List<PostResponse>>
+
+    @GET("api/posts/{postId}")
+    suspend fun getPost(@Path("postId") postId: String): Response<PostResponse>
+
+    @POST("api/posts")
+    suspend fun createPost(@Body body: CreatePostRequest): Response<BasicResponse>
+
+    @POST("api/posts/{postId}/replies")
+    suspend fun addReply(
+        @Path("postId") postId: String,
+        @Body body: CreateReplyRequest
+    ): Response<BasicResponse>
+
     @Multipart
     @POST("api/predict")
     suspend fun predictImage(

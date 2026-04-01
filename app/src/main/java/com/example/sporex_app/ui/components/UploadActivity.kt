@@ -20,14 +20,15 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
+import com.example.sporex_app.utils.isDarkMode
 
 class UploadActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            SPOREX_AppTheme {
-                val context = this@UploadActivity
+            val darkMode = isDarkMode(this@UploadActivity)
+            SPOREX_AppTheme(darkTheme = darkMode) {
 
                 Scaffold(
                     topBar = {
@@ -48,12 +49,8 @@ class UploadActivity : ComponentActivity() {
                             .padding(paddingValues),
                         onBack = { finish() },
                         onNext = { uri ->
-                            val intent = Intent(context, ConfirmationActivity::class.java).apply {
-                                putExtra("imageUri", uri.toString())
-
-                                // Optional: pass email if you already store/login with it
-                                // putExtra("email", "user@example.com")
-                            }
+                            val intent = Intent(this@UploadActivity, ConfirmationActivity::class.java)
+                            intent.putExtra("imageUri", uri.toString())
                             startActivity(intent)
                         }
                     )
@@ -96,6 +93,7 @@ fun UploadScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Back button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start
@@ -123,6 +121,7 @@ fun UploadScreen(
 
                 Spacer(Modifier.height(24.dp))
 
+                // Upload Box Card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
