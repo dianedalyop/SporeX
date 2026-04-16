@@ -40,7 +40,8 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = { BottomNavBar(currentScreen = "home") }
-                ) {
+                )
+                {
                     HomeScreen(
                         modifier = Modifier,
                         onUploadClick = {
