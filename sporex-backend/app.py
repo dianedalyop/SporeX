@@ -660,6 +660,18 @@ def send_otp_email(to_email: str, otp: str):
 # enabling darkmode, profile delete access, log out , navigate to device page
 # ----------------------------
 
+#---- device logs from mongo to frontend --
+@app.get("/api/readings/latest")
+def get_latest_reading():
+    reading = db.sensor_readings.find_one(
+        sort=[("created_at", -1)]
+    )
+    if not reading:
+        return {"message": "No readings found"}
+
+    reading["_id"] = str(reading["_id"])
+    return reading
+
 # Optional: get scan history for a user
 @app.get("/api/scans/{email}")
 async def get_user_scans(email: str):

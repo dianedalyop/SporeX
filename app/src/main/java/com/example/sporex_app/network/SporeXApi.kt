@@ -83,7 +83,9 @@ interface SporexApi {
     ): Response<PredictResponseDto>
 
     @DELETE("api/scans/{scanId}")
-    suspend fun deleteScan(
-        @Path("scanId") scanId: String
+    suspend fun deleteScan(        @Path("scanId") scanId: String
     ): Response<BasicResponse>
+
+    @GET("api/readings/latest")
+    suspend fun getLatestReading(): ReadingResponse
 }
