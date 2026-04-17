@@ -675,21 +675,21 @@ async def get_user_scans(email: str):
     return scans
 # Home page Previous Updates
 @app.get("/api/scans/latest")
-  async def get_latest_scan():
-      scan = scans_col.find_one(
-          sort=[("created_at", -1)]
-      )
+async def get_latest_scan():
+    scan = scans_col.find_one(
+        sort=[("created_at", -1)]
+    )
 
-      if not scan:
-          return {"message": "No scans found"}
+    if not scan:
+        return {"message": "No scans found"}
 
-      return {
-          "id": str(scan["_id"]),
-          "mould_detected": scan.get("mould_detected", False),
-          "max_confidence": scan.get("max_confidence"),
-          "image_url": scan.get("image_url"),
-          "created_at": scan.get("created_at").isoformat() if scan.get("created_at") else None,
-      }
+    return {
+        "id": str(scan["_id"]),
+        "mould_detected": scan.get("mould_detected", False),
+        "max_confidence": scan.get("max_confidence"),
+        "image_url": scan.get("image_url"),
+        "created_at": scan.get("created_at").isoformat() if scan.get("created_at") else None,
+    }
 
 
 @app.delete("/api/scans/{scan_id}", response_model=BasicResponse)
