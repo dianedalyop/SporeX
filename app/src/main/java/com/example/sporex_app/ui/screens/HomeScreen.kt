@@ -10,20 +10,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sporex_app.network.ScanResponse
-import com.example.sporex_app.ui.navigation.TopBar
 import com.example.sporex_app.network.RetrofitClient
+import com.example.sporex_app.ui.navigation.TopBar
+import com.example.sporex_app.ui.onboarding.OnboardingOverlay
+import com.example.sporex_app.ui.onboarding.OnboardingPageOne
+import com.example.sporex_app.ui.onboarding.OnboardingStep
 
 @Composable
 fun HomeScreen(
@@ -32,6 +32,35 @@ fun HomeScreen(
     onProductsClick: () -> Unit,
     onHistoryClick: () -> Unit
 ) {
+
+    // ---------------- ONBOARDING SETUP ----------------
+
+    val context = LocalContext.current
+    val onboardingPrefs = remember { OnboardingPageOne(context) }
+
+    val onboardingSteps = listOf(
+        OnboardingStep(
+            title = "Welcome to SPOREX",
+            description = "Your personal mold detection assistant. Let's get started!"
+        ),
+        OnboardingStep(
+            title = "Scan Your Home",
+            description = "Use the camera to scan for mold and get instant results."
+        ),
+        OnboardingStep(
+            title = "Notifications",
+            description = "Check your past scans and monitor your home's health over time."
+        )
+    )
+
+    var stepIndex by remember { mutableStateOf(0) }
+
+    var showOnboarding by rememberSaveable {
+        mutableStateOf(onboardingPrefs.isFirstLaunch())
+    }
+
+    // ---------------- SCAN STATE ----------------
+
     var scan by remember { mutableStateOf<ScanResponse?>(null) }
 
     LaunchedEffect(Unit) {
@@ -41,53 +70,84 @@ fun HomeScreen(
             e.printStackTrace()
         }
     }
-    Column(
+
+    // ---------------- ROOT LAYOUT (IMPORTANT: BOX) ----------------
+
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.primary)
-            .navigationBarsPadding() // Fixes phone nav overlap
+            .navigationBarsPadding()
     ) {
 
-        TopBar()
+        // ---------------- MAIN UI ----------------
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Surface(
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(topStart = 35.dp, topEnd = 35.dp)
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+
+            TopBar()
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Surface(
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(topStart = 35.dp, topEnd = 35.dp)
             ) {
 
-                Text(
-                    text = "Welcome Back!",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.headlineLarge
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
 
-                PreviousCaseCard(scan = scan,
-                    onClick = onHistoryClick)
+                    Text(
+                        text = "Welcome Back!",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineLarge
+                    )
 
-                Text(
-                    text = "Scan For Mould",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.headlineLarge
-                )
+                    PreviousCaseCard(
+                        scan = scan,
+                        onClick = onHistoryClick
+                    )
 
-                CameraCard(onUploadClick = onUploadClick)
+                    Text(
+                        text = "Scan For Mould",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+
+                    CameraCard(onUploadClick = onUploadClick)
+                }
             }
+        }
+
+        // ---------------- ONBOARDING OVERLAY (FLOATS ABOVE UI) ----------------
+
+        if (showOnboarding) {
+            OnboardingOverlay(
+                step = onboardingSteps[stepIndex],
+                onNext = {
+                    if (stepIndex < onboardingSteps.lastIndex) {
+                        stepIndex++
+                    } else {
+                        onboardingPrefs.finishOnboarding()
+                        showOnboarding = false
+                    }
+                },
+                onSkip = {
+                    onboardingPrefs.finishOnboarding()
+                    showOnboarding = false
+                }
+            )
         }
     }
 }
-
-
 
 @Composable
 private fun CameraCard(onUploadClick: () -> Unit) {
@@ -116,8 +176,10 @@ private fun CameraCard(onUploadClick: () -> Unit) {
 }
 
 @Composable
-private fun PreviousCaseCard(scan: ScanResponse?,
-                             onClick: () -> Unit) {
+private fun PreviousCaseCard(
+    scan: ScanResponse?,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -131,6 +193,7 @@ private fun PreviousCaseCard(scan: ScanResponse?,
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Column(modifier = Modifier.weight(1f)) {
 
                 Text(
@@ -151,22 +214,13 @@ private fun PreviousCaseCard(scan: ScanResponse?,
                 )
 
                 Text(
-                    text = scan?.max_confidence?.let {
-                        "${(it * 100).toInt()}%"
-                    } ?: "--%",
-                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Text(
                     text = scan?.let {
                         if (it.mould_detected) {
                             "SPOREX detected ${(it.max_confidence!! * 100).toInt()}% likelihood of mould."
                         } else {
                             "No mould detected in the last scan."
                         }
-                    } ?: "No previous scan available",
+                    } ?: "No previous scan available"
                 )
 
                 Spacer(Modifier.height(4.dp))
