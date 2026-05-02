@@ -2,32 +2,32 @@ package com.example.sporex_app.ui.community
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.sporex_app.network.PostCategory
 import com.example.sporex_app.network.PostResponse
-import java.time.ZoneId
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun PostResponse.toCommunityPost(): CommunityPost {
+    val safeCategory = category.lowercase()
+
     return CommunityPost(
-        id = id.hashCode(),
+        id = id,
         author = user_name,
         content = content,
-        timestamp = formatTimestamp(created_at),
+        timestamp = created_at ?: "Just now",
+        category = when (safeCategory) {
+            "mould" -> PostCategory.MOULD
+            "health" -> PostCategory.HEALTH
+            else -> PostCategory.MISC
+        },
         comments = replies.mapIndexed { index, reply ->
-            Comment(
-                id = index + 1,
-                author = reply.user_name,
-                content = reply.content
-            )
+            Comment(index, reply.user_name, reply.content)
         }.toMutableList()
     )
-}
-
-fun formatBackendDate(raw: String): String {
-    return raw
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -35,8 +35,10 @@ fun formatTimestamp(dateString: String?): String {
     if (dateString.isNullOrBlank()) return "Just now"
 
     return try {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
-        val postTime = LocalDateTime.parse(dateString, formatter)
+        val formatter = DateTimeFormatter.ISO_DATE_TIME
+
+        val postTime = LocalDateTime
+            .parse(dateString, formatter)
             .atZone(ZoneOffset.UTC)
 
         val now = java.time.ZonedDateTime.now(ZoneId.systemDefault())
@@ -51,7 +53,8 @@ fun formatTimestamp(dateString: String?): String {
             duration.toDays() < 7 -> "${duration.toDays()}d ago"
             else -> postLocal.toLocalDate().toString()
         }
+
     } catch (e: Exception) {
-        dateString
+        "Just now"
     }
 }

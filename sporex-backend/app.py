@@ -4,7 +4,6 @@ import shutil
 import uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-
 import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, UploadFile, File, Form
@@ -149,7 +148,8 @@ class PostCreateBody(BaseModel):
     user_name: str
     post_name: str
     content: str
-
+    category: str = "misc"
+    image_url: str | None = None
 
 class ReplyCreateBody(BaseModel):
     user_name: str
@@ -183,20 +183,6 @@ async def get_settings(email: str):
         "settings": user.get("settings", {})
     }
 
-@app.put("/api/settings")
-async def update_settings(body: UpdateSettingsBody):
-    result = users_col.update_one(
-        {"email": body.email},
-        {"$set": {"settings": body.settings.dict()}}
-    )
-
-    if result.matched_count == 0:
-        return JSONResponse(
-            status_code=404,
-            content={"success": False, "message": "User not found"},
-        )
-
-    return {"success": True, "message": "Settings updated"}
 
     
 # prediction response models
@@ -285,6 +271,7 @@ async def register(body: RegisterBody):
         "email": body.email,
         "username": username,
         "password_hash": password_hash,
+         "profile_image": None,
         "role": "member",
         "status": "active",
         "is_verified": False,
@@ -337,22 +324,50 @@ async def login(body: LoginBody):
             "email": user.get("email"),
             "username": user.get("username"),
             "name": user.get("name"),
+            "profile_image": user.get("profile_image")
         },
     }
 
-
-@app.get("/api/settings/{email}")
-async def get_settings(email: str):
+@app.put("/api/user/profile")
+async def update_profile(
+    email: str = Form(...),
+    username: str = Form(...),
+    file: UploadFile = File(None)
+):
     user = users_col.find_one({"email": email})
 
     if not user:
-        return JSONResponse(
-            status_code=404,
-            content={"success": False, "message": "User not found"},
-        )
+        raise HTTPException(status_code=404, detail="User not found")
 
-    return {"success": True, "settings": user.get("settings", {})}
+    update_data = {"username": username}
 
+    if file:
+        ext = Path(file.filename).suffix.lower()
+        if ext not in [".jpg", ".jpeg", ".png"]:
+            ext = ".jpg"
+
+        file_id = str(uuid.uuid4()) + ext
+        path = UPLOAD_DIR / file_id
+
+        with path.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        update_data["profile_image"] = f"/static/{file_id}"
+
+    users_col.update_one(
+        {"email": email},
+        {"$set": update_data}
+    )
+
+    user = users_col.find_one({"email": email})
+
+    return {
+        "success": True,
+        "message": "Profile updated",
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "profile_image": user.get("profile_image")
+    }
 
 @app.put("/api/settings")
 async def update_settings(body: UpdateSettingsBody):
@@ -414,15 +429,20 @@ def get_product(product_id: str):
 # ---------- Posts ----------
 @app.post("/api/posts", response_model=BasicResponse)
 async def create_post(body: PostCreateBody):
-    """Create a new post"""
+
     post_doc = {
         "user_name": body.user_name,
         "post_name": body.post_name,
         "content": body.content,
+        "category": body.category,
+        "image_url": body.image_url,
         "created_at": datetime.now(timezone.utc),
         "replies": []
     }
+
     result = posts_col.insert_one(post_doc)
+    print("POST CREATED AT:", post_doc.get("created_at"))
+
     return {
         "success": True,
         "message": f"Post created with ID: {result.inserted_id}"
@@ -431,13 +451,16 @@ async def create_post(body: PostCreateBody):
 @app.get("/api/posts")
 async def list_posts():
     posts = []
-    for post in posts_col.find():
+
+    for post in posts_col.find().sort("created_at", -1):  # newest first
         replies = []
+
         for reply in post.get("replies", []):
             replies.append({
                 "user_name": reply.get("user_name", ""),
                 "content": reply.get("content", ""),
-                "created_at": reply.get("created_at").isoformat() if reply.get("created_at") else None
+                "created_at": reply.get("created_at").isoformat()
+                if reply.get("created_at") else None
             })
 
         posts.append({
@@ -445,10 +468,38 @@ async def list_posts():
             "user_name": post.get("user_name", ""),
             "post_name": post.get("post_name", ""),
             "content": post.get("content", ""),
-            "created_at": post.get("created_at").isoformat() if post.get("created_at") else None,
+            "image_url": post.get("image_url"),
+            "category": post.get("category", "misc"),
+            "created_at": post.get("created_at").isoformat()
+            if post.get("created_at") else None,
             "replies": replies
         })
+
     return posts
+
+# @app.get("/api/posts")
+# async def list_posts():
+#     posts = []
+#   for post in posts_col.find().sort("created_at", -1):
+#         replies = []
+#         for reply in post.get("replies", []):
+#             replies.append({
+#                 "user_name": reply.get("user_name", ""),
+#                 "content": reply.get("content", ""),
+#                 "created_at": reply.get("created_at").isoformat() if reply.get("created_at") else None
+#             })
+#
+#         posts.append({
+#             "id": str(post["_id"]),
+#             "user_name": post.get("user_name", ""),
+#             "post_name": post.get("post_name", ""),
+#             "content": post.get("content", ""),
+#             "image_url": post.get("image_url"),
+#              "category": post.get("category", "misc"),
+#             "created_at": post.get("created_at").isoformat() if post.get("created_at") else None,
+#             "replies": replies
+#         })
+#     return posts
 
 @app.get("/api/posts/{post_id}")
 async def get_post(post_id: str):

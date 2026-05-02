@@ -68,10 +68,16 @@ fun YourAccountScreen() {
                     AccountOptionItem(
                         title = "Edit Profile",
                         onClick = {
-                            val intent = Intent(context, EditProfileActivity::class.java)
+                            val intent = Intent(context, EditProfileActivity::class.java).apply {
+                                putExtra("username", UserSession.getUsername(context))
+                                putExtra("email", UserSession.getEmail(context))
+                            }
+
+
                             context.startActivity(intent)
                         }
                     )
+
 
                     AccountOptionItem(
                         title = "Change Password",

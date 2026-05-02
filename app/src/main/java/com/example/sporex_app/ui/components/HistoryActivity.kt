@@ -11,28 +11,25 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sporex_app.network.RetrofitClient
+import com.example.sporex_app.network.ScanHistoryDto
 import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
 import com.example.sporex_app.utils.isDarkMode
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.ui.graphics.Color
-import com.example.sporex_app.network.ScanHistoryDto
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 
 class HistoryActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -50,18 +47,28 @@ class HistoryActivity : ComponentActivity() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HistoryScreen() {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // Core State
     val userEmail = remember {
         context.getSharedPreferences("auth", Context.MODE_PRIVATE)
             .getString("user_email", "") ?: ""
     }
 
     var scans by remember { mutableStateOf<List<ScanHistoryDto>>(emptyList()) }
+    var solvedScanIds by remember { mutableStateOf(setOf<String>()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var reloadKey by remember { mutableStateOf(0) }
+    var selectedScan by remember { mutableStateOf<ScanHistoryDto?>(null) }
 
+    // Data Filtering
+    val activeScans = scans.filter { it.id !in solvedScanIds }
+    val recentScans = activeScans.filter { isWithinLastDays(it.created_at, 7) }
+    val olderScans = activeScans.filter { !isWithinLastDays(it.created_at, 7) }
+
+    // Fetch Logic
     LaunchedEffect(userEmail, reloadKey) {
         if (userEmail.isBlank()) {
             error = "No logged in user found"
@@ -71,6 +78,7 @@ fun HistoryScreen() {
 
         isLoading = true
         error = null
+         solvedScanIds = emptySet()
 
         try {
             val response = RetrofitClient.api.getUserScans(userEmail)
@@ -85,71 +93,53 @@ fun HistoryScreen() {
             isLoading = false
         }
     }
-    val recentScans = scans.filter { isWithinLastDays(it.created_at, 7) }
-    val olderScans = scans.filter { !isWithinLastDays(it.created_at, 7) }
 
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomNavBar(currentScreen = "history") },
         containerColor = MaterialTheme.colorScheme.primary
     ) { padding ->
-        Column(
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
             when {
-                isLoading -> {
-                    CircularProgressIndicator()
-                }
-
-                error != null -> {
-                    Text(
-                        text = error!!,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                scans.isEmpty() -> {
+                isLoading -> item { CircularProgressIndicator(color = Color.White) }
+                error != null -> item { Text(text = error!!, color = MaterialTheme.colorScheme.error) }
+                activeScans.isEmpty() -> item {
                     Text(
                         text = "No scan history yet",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-
                 else -> {
-                    Text(
-                        text = "Last 7 Days",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-
-                    LazyColumn(
-                        modifier = Modifier.weight(1f, fill = false),
-                        contentPadding = PaddingValues(vertical = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                    // SECTION: Last 7 Days
+                    if (recentScans.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Last 7 Days",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                         items(recentScans) { scan ->
                             ScanCard(
                                 scan = scan,
+                                onClick = { selectedScan = scan },
                                 onDelete = { scanId ->
                                     scope.launch {
                                         try {
                                             val response = RetrofitClient.api.deleteScan(scanId)
-                                            if (response.isSuccessful) {
-                                                reloadKey++
-                                            } else {
-                                                error = "Failed to delete case (${response.code()})"
-                                            }
+                                            if (response.isSuccessful) reloadKey++
                                         } catch (e: Exception) {
-                                            error = "Error deleting case: ${e.localizedMessage}"
+                                            error = "Error: ${e.localizedMessage}"
                                         }
                                     }
                                 }
@@ -157,32 +147,27 @@ fun HistoryScreen() {
                         }
                     }
 
-                    Text(
-                        text = "Older",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(vertical = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                    // SECTION: Older
+                    if (olderScans.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Older",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                         items(olderScans) { scan ->
                             ScanCard(
                                 scan = scan,
+                                onClick = { selectedScan = scan },
                                 onDelete = { scanId ->
                                     scope.launch {
                                         try {
                                             val response = RetrofitClient.api.deleteScan(scanId)
-                                            if (response.isSuccessful) {
-                                                reloadKey++
-                                            } else {
-                                                error = "Failed to delete case (${response.code()})"
-                                            }
+                                            if (response.isSuccessful) reloadKey++
                                         } catch (e: Exception) {
-                                            error = "Error deleting case: ${e.localizedMessage}"
+                                            error = "Error: ${e.localizedMessage}"
                                         }
                                     }
                                 }
@@ -193,31 +178,33 @@ fun HistoryScreen() {
             }
         }
     }
+
+    // MODAL POPUP
+    if (selectedScan != null) {
+        CaseModal(
+            scan = selectedScan!!,
+            onClose = { selectedScan = null },
+            onSolve = { id ->
+                solvedScanIds = solvedScanIds + id
+            }
+        )
+    }
 }
 
 @Composable
 fun ScanCard(
     scan: ScanHistoryDto,
+    onClick: () -> Unit,
     onDelete: (String) -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
-
     val confidencePercent = ((scan.max_confidence ?: 0.0) * 100).toInt()
-
-    val resultText = if (scan.mould_detected) {
-        "OPEN CASE"
-    } else {
-        "NO MOULD DETECTED"
-    }
-
-    val chanceText = if (scan.mould_detected) {
-        "$confidencePercent% confidence of mould detected"
-    } else {
-        "No mould detected in this scan"
-    }
+    val resultText = if (scan.mould_detected) "OPEN CASE" else "NO MOULD DETECTED"
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp
@@ -227,49 +214,28 @@ fun ScanCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = formatScanDate(scan.created_at),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
                     text = resultText,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
-                    text = chanceText,
+                    text = if (scan.mould_detected) "$confidencePercent% confidence" else "Clear",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { showDeleteDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete Case",
-                        tint = Color.Red
-                    )
-                }
-
-                Icon(
-                    imageVector = Icons.Filled.ArrowForward,
-                    contentDescription = "View Case",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
+            IconButton(onClick = { showDeleteDialog = true }) {
+                Icon(Icons.Filled.Delete, "Delete", tint = Color.Red)
             }
         }
     }
@@ -280,62 +246,73 @@ fun ScanCard(
             title = { Text("Delete Case") },
             text = { Text("Are you sure you want to delete this case?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        onDelete(scan.id)
-                    }
-                ) {
-                    Text("Delete", color = Color.Red)
-                }
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    onDelete(scan.id)
+                }) { Text("Delete", color = Color.Red) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
             }
         )
     }
 }
+
+@Composable
+fun CaseModal(
+    scan: ScanHistoryDto,
+    onClose: () -> Unit,
+    onSolve: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text("Case Details", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Date: ${formatScanDate(scan.created_at)}")
+                Text("Detected: ${if (scan.mould_detected) "Yes" else "No"}")
+                Text("Confidence: ${((scan.max_confidence ?: 0.0) * 100).toInt()}%")
+                Text("Image URL: ${scan.image_url ?: "None"}")
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onClose,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+            ) { Text("Open", color = Color.White) }
+        },
+        dismissButton = {
+            Button(
+                onClick = {
+                    onSolve(scan.id)
+                    onClose()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) { Text("Close", color = Color.White) }
+        }
+    )
+}
+
 private fun parseScanDate(dateString: String?): Date? {
     if (dateString.isNullOrBlank()) return null
-
-    val formats = listOf(
-        "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
-        "yyyy-MM-dd'T'HH:mm:ss.SSS",
-        "yyyy-MM-dd'T'HH:mm:ss"
-    )
-
+    val formats = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss")
     for (pattern in formats) {
         try {
             val sdf = SimpleDateFormat(pattern, Locale.getDefault())
             sdf.isLenient = false
-            val parsed = sdf.parse(dateString)
-            if (parsed != null) return parsed
-        } catch (_: Exception) {
-        }
+            return sdf.parse(dateString)
+        } catch (_: Exception) {}
     }
-
     return null
 }
 
 fun formatScanDate(dateString: String?): String {
-    return try {
-        val parsedDate = parseScanDate(dateString) ?: return "Unknown date"
-        val output = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        output.format(parsedDate)
-    } catch (e: Exception) {
-        "Unknown date"
-    }
+    val parsedDate = parseScanDate(dateString) ?: return "Unknown date"
+    return SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(parsedDate)
 }
 
 fun isWithinLastDays(dateString: String?, days: Long): Boolean {
-    return try {
-        val parsedDate = parseScanDate(dateString) ?: return false
-        val now = Date().time
-        val diffMillis = now - parsedDate.time
-        diffMillis >= 0 && diffMillis <= days * 24 * 60 * 60 * 1000
-    } catch (e: Exception) {
-        false
-    }
+    val parsedDate = parseScanDate(dateString) ?: return false
+    val diffMillis = Date().time - parsedDate.time
+    return diffMillis in 0..(days * 24 * 60 * 60 * 1000)
 }
