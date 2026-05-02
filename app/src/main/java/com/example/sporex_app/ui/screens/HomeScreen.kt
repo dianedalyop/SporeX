@@ -33,8 +33,6 @@ fun HomeScreen(
     onHistoryClick: () -> Unit
 ) {
 
-    // ---------------- ONBOARDING SETUP ----------------
-
     val context = LocalContext.current
     val onboardingPrefs = remember { OnboardingPageOne(context) }
 
@@ -59,8 +57,6 @@ fun HomeScreen(
         mutableStateOf(onboardingPrefs.isFirstLaunch())
     }
 
-    // ---------------- SCAN STATE ----------------
-
     var scan by remember { mutableStateOf<ScanResponse?>(null) }
 
     LaunchedEffect(Unit) {
@@ -71,105 +67,97 @@ fun HomeScreen(
         }
     }
 
-    // ---------------- ROOT LAYOUT (IMPORTANT: BOX) ----------------
+    Scaffold(
+        topBar = { TopBar() },
+        containerColor = MaterialTheme.colorScheme.primary
+    ) { innerPadding ->
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary)
-            .navigationBarsPadding()
-    ) {
-
-        // ---------------- MAIN UI ----------------
-
-        Column(
-            modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(innerPadding)
         ) {
 
-            TopBar()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Surface(
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(topStart = 35.dp, topEnd = 35.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp)
             ) {
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
+                Spacer(modifier = Modifier.height(40.dp))
 
-                    Text(
-                        text = "Welcome Back!",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.headlineLarge
-                    )
+                Text(
+                    text = "Welcome Back!",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineLarge
+                )
 
-                    PreviousCaseCard(
-                        scan = scan,
-                        onClick = onHistoryClick
-                    )
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = "Scan For Mould",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.headlineLarge
-                    )
+                PreviousCaseCard(
+                    scan = scan,
+                    onClick = onHistoryClick
+                )
 
-                    CameraCard(onUploadClick = onUploadClick)
-                }
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = "Scan For Mould",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineLarge
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                CameraCard(onUploadClick = onUploadClick)
             }
-        }
 
-        // ---------------- ONBOARDING OVERLAY (FLOATS ABOVE UI) ----------------
-
-        if (showOnboarding) {
-            OnboardingOverlay(
-                step = onboardingSteps[stepIndex],
-                onNext = {
-                    if (stepIndex < onboardingSteps.lastIndex) {
-                        stepIndex++
-                    } else {
+            if (showOnboarding) {
+                OnboardingOverlay(
+                    step = onboardingSteps[stepIndex],
+                    onNext = {
+                        if (stepIndex < onboardingSteps.lastIndex) {
+                            stepIndex++
+                        } else {
+                            onboardingPrefs.finishOnboarding()
+                            showOnboarding = false
+                        }
+                    },
+                    onSkip = {
                         onboardingPrefs.finishOnboarding()
                         showOnboarding = false
                     }
-                },
-                onSkip = {
-                    onboardingPrefs.finishOnboarding()
-                    showOnboarding = false
-                }
-            )
+                )
+            }
         }
     }
 }
-
 @Composable
 private fun CameraCard(onUploadClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(240.dp)
             .clickable { onUploadClick() },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Filled.CameraAlt,
                 contentDescription = "Camera",
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(140.dp)
             )
         }
     }
@@ -183,6 +171,7 @@ private fun PreviousCaseCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 170.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(

@@ -27,28 +27,14 @@ class DeviceActivity : ComponentActivity() {
                 SPOREX_AppTheme(darkTheme = darkTheme) {
                     val navController: NavHostController = rememberNavController()
 
-                    // Shared repository for all screens
-                    val repo = DeviceRepository(this)
+                   val repo = DeviceRepository(this)
 
                     NavHost(
                         navController = navController,
-//                        startDestination = DeviceScreen.DeviceDashboard.route
-                        startDestination = "root"
+             startDestination = "root"
                     ) {
 
 
-//                        composable("device") {
-//                            DeviceDashboardScreen(
-//                                deviceName = "Living Room Sensor",
-//                                onManageDeviceClick = {
-//                                    navController.navigate("manage_device")
-//                                },
-//                                onCreateDeviceClick = {
-//                                    navController.navigate("create_device")
-//                                }
-//
-//                            )
-//                        }
 
                         composable(DeviceScreen.DeviceDetails.route) {
                             DeviceDetailsScreen(

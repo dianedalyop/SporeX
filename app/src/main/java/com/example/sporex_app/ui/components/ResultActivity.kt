@@ -110,7 +110,6 @@ class ResultActivity : ComponentActivity() {
     ) {
         val context = LocalContext.current
 
-        // For emulator testing. If using Render, imageUrl is already relative to same host.
         val fullImageUrl = if (imageUrl.startsWith("http")) {
             imageUrl
         } else {
@@ -196,7 +195,7 @@ class ResultActivity : ComponentActivity() {
             }
 
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(8.dp),
                 tonalElevation = 2.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -224,7 +223,7 @@ class ResultActivity : ComponentActivity() {
             )
 
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(8.dp),
                 tonalElevation = 2.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
