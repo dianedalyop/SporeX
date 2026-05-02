@@ -18,13 +18,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sporex_app.R
-import com.example.sporex_app.network.CreatePostRequest
 import com.example.sporex_app.network.RetrofitClient
 import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
-import android.content.Intent
-import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.sporex_app.network.CreatePostRequest
+import com.example.sporex_app.network.PostCategory
 import com.example.sporex_app.useraccount.UserSession
 import com.example.sporex_app.utils.isDarkMode
 import kotlinx.coroutines.launch
@@ -64,8 +67,16 @@ fun CreatePostScreen(
     val context = LocalContext.current
     val activity = context as? Activity
     val scope = rememberCoroutineScope()
+    var selectedCategory by remember { mutableStateOf(PostCategory.MISC) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val currentUsername = UserSession.getUsername(context)
+
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        selectedImageUri = uri
+    }
 
     Column(
         modifier = modifier
@@ -74,6 +85,22 @@ fun CreatePostScreen(
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Text("Category", fontWeight = FontWeight.SemiBold)
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip("Mould", selectedCategory == PostCategory.MOULD) {
+                selectedCategory = PostCategory.MOULD
+            }
+
+            FilterChip("Health", selectedCategory == PostCategory.HEALTH) {
+                selectedCategory = PostCategory.HEALTH
+            }
+
+            FilterChip("Misc", selectedCategory == PostCategory.MISC) {
+                selectedCategory = PostCategory.MISC
+            }
+        }
 
         Text(
             text = "Create Post",
@@ -127,6 +154,20 @@ fun CreatePostScreen(
                         cursorColor = colors.primary
                     )
                 )
+                selectedImageUri?.let {
+                    Spacer(Modifier.height(12.dp))
+                    AsyncImage(
+                        model = it,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                    )
+                }
+
+                Button(onClick = { imagePicker.launch("image/*") }) {
+                    Text("Add Photo")
+                }
 
                 if (error != null) {
                     Spacer(modifier = Modifier.height(12.dp))
@@ -148,7 +189,8 @@ fun CreatePostScreen(
                                     CreatePostRequest(
                                         user_name = currentUsername,
                                         post_name = "Post",
-                                        content = postContent
+                                        content = postContent,
+                                        category = selectedCategory.name.lowercase()
                                     )
                                 )
 

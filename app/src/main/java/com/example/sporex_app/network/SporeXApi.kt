@@ -75,6 +75,9 @@ interface SporexApi {
         @Path("email") email: String
     ): Response<List<ScanHistoryDto>>
 
+
+
+
     @Multipart
     @POST("api/predict")
     suspend fun predictImage(
@@ -96,4 +99,13 @@ interface SporexApi {
     suspend fun deletePost(
         @Path("postId") postId: String
     ): Response<BasicResponse>
+
+    @Multipart
+    @PUT("api/user/profile")
+    suspend fun updateProfile(
+        @Part("email") email: RequestBody,
+        @Part("username") username: RequestBody,
+        @Part file: MultipartBody.Part? = null
+    ): Response<UpdateProfileResponse>
+
 }

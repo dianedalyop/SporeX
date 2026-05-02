@@ -85,7 +85,7 @@ fun MyPostsScreen() {
         .filter { it.user_name == currentUsername }
         .map { backendPost ->
             Post(
-                id = backendPost.id.hashCode(),
+                id = backendPost.id,
                 author = backendPost.user_name,
                 content = backendPost.content,
                 timestamp = backendPost.created_at ?: "Just now"

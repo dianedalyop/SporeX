@@ -12,14 +12,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import android.widget.Toast
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,36 +27,76 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
+import kotlinx.coroutines.launch
 
 class EditProfileActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val currentUsername = intent.getStringExtra("username") ?: ""
-        val currentEmail = intent.getStringExtra("email") ?: ""
-
+        val currentUsername = UserSession.getUsername(this)
+        val currentEmail = UserSession.getEmail(this)
+        val currentImage = UserSession.getImage(this)
 
         val isDarkMode = com.example.sporex_app.utils.isDarkMode(this)
 
         setContent {
             SPOREX_AppTheme(darkTheme = isDarkMode) {
+
                 EditProfileScreen(
                     currentUsername = currentUsername,
                     currentEmail = currentEmail,
+                    currentImage = currentImage,
                     onBack = { finish() },
-                    onSave = { updatedUsername, updatedEmail, updatedPassword ->
-                        val resultIntent = Intent().apply {
-                            putExtra("username", updatedUsername)
-                            putExtra("email", updatedEmail)
-                            putExtra("password", updatedPassword)
+
+                    onSave = { updatedUsername, updatedEmail, imageUri ->
+
+                        val api = com.example.sporex_app.network.RetrofitClient.api
+                        val context = this@EditProfileActivity
+
+                        lifecycleScope.launch {
+                            try {
+                                val response = UserRepository.updateProfile(
+                                    api = api,
+                                    context = context,
+                                    email = updatedEmail,
+                                    username = updatedUsername,
+                                    imageUri = imageUri
+                                )
+
+                                if (response.isSuccessful) {
+
+                                    val body = response.body()
+
+                                    val resultIntent = Intent().apply {
+                                        putExtra("username", body?.username ?: updatedUsername)
+                                        putExtra("email", body?.email ?: updatedEmail)
+                                        putExtra("image", body?.profile_image)
+                                    }
+
+                                    setResult(Activity.RESULT_OK, resultIntent)
+                                    finish()
+                                }  else {
+                                    Toast.makeText(context, "Update failed: ${response.code()}", Toast.LENGTH_LONG).show()
+                                }
+
+                            }
+                            catch (e: Exception) {
+                                e.printStackTrace()
+                                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
                         }
-                        setResult(Activity.RESULT_OK, resultIntent)
-                        finish()
                     }
                 )
             }
@@ -66,25 +104,29 @@ class EditProfileActivity : ComponentActivity() {
     }
 }
 
-
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     currentUsername: String,
     currentEmail: String,
+    currentImage: String?,
     onBack: () -> Unit,
-    onSave: (String, String, String) -> Unit
+    onSave: (String, String, Uri?) -> Unit
 ) {
     var username by remember { mutableStateOf(currentUsername) }
     var email by remember { mutableStateOf(currentEmail) }
-    var password by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
-    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val context = LocalContext.current
+
+     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri -> profileImageUri = uri }
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            profileImageUri = uri
+        }
+    }
 
     val colors = MaterialTheme.colorScheme
 
@@ -99,60 +141,68 @@ fun EditProfileScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(
-                        Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = colors.onBackground
-                    )
+                    Icon(Icons.Default.ArrowBack, contentDescription = null)
                 }
 
                 Text(
-                    text = "Edit Profile",
-                    color = colors.onBackground,
+                    "Edit Profile",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // Avatar picker
-            Box(
+             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .clip(RoundedCornerShape(60.dp))
-                    .background(colors.surface.copy(alpha = 0.25f))
+                    .clip(CircleShape)
                     .clickable { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                if (profileImageUri != null) {
-                    AsyncImage(
-                        model = profileImageUri,
-                        contentDescription = "Profile Photo",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile Icon",
-                        tint = colors.onSurface,
-                        modifier = Modifier.size(60.dp)
-                    )
+
+                val imageUrl = currentImage?.let {
+                    if (it.startsWith("http")) it
+                    else "https://sporex.onrender.com$it"
+                }
+
+                when {
+                     profileImageUri != null -> {
+                        Image(
+                            painter = rememberAsyncImagePainter(profileImageUri),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                     !imageUrl.isNullOrEmpty() -> {
+                        Image(
+                            painter = rememberAsyncImagePainter(imageUrl),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                     else -> {
+                        Image(
+                            painter = painterResource(R.drawable.profilepicture),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
 
             RoundedTextField(
                 value = username,
@@ -161,6 +211,8 @@ fun EditProfileScreen(
                 colors = colors
             )
 
+            Spacer(Modifier.height(12.dp))
+
             RoundedTextField(
                 value = email,
                 label = "Email",
@@ -168,17 +220,15 @@ fun EditProfileScreen(
                 colors = colors
             )
 
-            Spacer(Modifier.height(16.dp))
-
             if (showError) {
+                Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Username and Email cannot be empty",
-                    color = colors.error,
-                    fontSize = 14.sp
+                    "Fields cannot be empty",
+                    color = colors.error
                 )
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
 
             Button(
                 onClick = {
@@ -186,24 +236,21 @@ fun EditProfileScreen(
                         showError = true
                     } else {
                         showError = false
-                        onSave(username, email, password)
+
+                        try {
+                            onSave(username, email, profileImageUri)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Update failed", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primary,
-                    contentColor = colors.onPrimary
-                )
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save Changes", fontSize = 17.sp)
+                Text("Save Changes")
             }
         }
     }
 }
-
 
 @Composable
 fun RoundedTextField(

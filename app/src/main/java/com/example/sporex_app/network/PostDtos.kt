@@ -6,20 +6,30 @@ data class ReplyResponse(
     val created_at: String?
 )
 
+
+enum class PostCategory {
+    MOULD,
+    HEALTH,
+    MISC
+}
+data class CreatePostRequest(
+    val user_name: String,
+    val post_name: String,
+    val content: String,
+    val category: String
+)
+
 data class PostResponse(
     val id: String,
     val user_name: String,
     val post_name: String,
     val content: String,
     val created_at: String?,
-    val replies: List<ReplyResponse> = emptyList()
+    val replies: List<ReplyResponse>,
+    val category: String,
+    val image_url: String? = null
 )
 
-data class CreatePostRequest(
-    val user_name: String,
-    val post_name: String,
-    val content: String
-)
 
 data class CreateReplyRequest(
     val user_name: String,
@@ -42,4 +52,12 @@ data class ReadingResponse(
 data class ScanResponse(
     val mould_detected: Boolean,
     val max_confidence: Double?
+)
+
+data class UpdateProfileResponse(
+    val success: Boolean,
+    val message: String,
+    val username: String?,
+    val email: String?,
+    val profile_image: String?
 )

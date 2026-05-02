@@ -2,34 +2,18 @@ package com.example.sporex_app.ui.components
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,8 +26,6 @@ import com.example.sporex_app.ui.navigation.BottomNavBar
 import com.example.sporex_app.ui.navigation.TopBar
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
 import com.example.sporex_app.utils.isDarkMode
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 
 class ResultActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,35 +38,35 @@ class ResultActivity : ComponentActivity() {
 
         setContent {
             val darkMode = isDarkMode(this)
+
             SPOREX_AppTheme(darkTheme = darkMode) {
                 Scaffold(
                     bottomBar = { BottomNavBar(currentScreen = "camera") },
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) { padding ->
 
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(Color(0xFF06A546)) // 🟢 BIG SPOREX GREEN BACKGROUND
                             .padding(bottom = padding.calculateBottomPadding())
                     ) {
                         Column(modifier = Modifier.fillMaxSize()) {
+
                             TopBar()
 
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                                    .padding(horizontal = 12.dp, vertical = 12.dp),
                                 contentAlignment = Alignment.TopCenter
                             ) {
+
                                 Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 12.dp),
-                                    //  .wrapContentHeight() < merge conflict resolve, look here if the page looks off
+                                    modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.surface,
-                                    shape = RoundedCornerShape(24.dp),
-                                    tonalElevation = 4.dp
+                                    shape = RoundedCornerShape(16.dp),
+                                    tonalElevation = 2.dp
                                 ) {
                                     MoldResultScreen(
                                         mouldDetected = mouldDetected,
@@ -110,200 +92,157 @@ class ResultActivity : ComponentActivity() {
     ) {
         val context = LocalContext.current
 
-        // For emulator testing. If using Render, imageUrl is already relative to same host.
-        val fullImageUrl = if (imageUrl.startsWith("http")) {
-            imageUrl
-        } else {
-            "https://sporex.onrender.com$imageUrl"
-        }
+        val fullImageUrl = if (imageUrl.startsWith("http")) imageUrl
+        else "https://sporex.onrender.com$imageUrl"
 
         val confidencePercent = (maxConfidence * 100).toInt()
 
-        val resultTitle = if (mouldDetected) "Possible Mould Detected" else "No Mould Detected"
+        val resultTitle = if (mouldDetected)
+            "Possible Mould Detected"
+        else "No Mould Detected"
 
         val resultSubtitle = when {
             !mouldDetected -> "The model did not detect mould in this image."
-            maxConfidence >= 0.7 -> "High confidence result: $confidencePercent% likelihood"
-            maxConfidence >= 0.4 -> "Moderate confidence result: $confidencePercent% likelihood"
-            else -> "Low confidence result: $confidencePercent% likelihood"
+            maxConfidence >= 0.7 -> "High confidence: $confidencePercent%"
+            maxConfidence >= 0.4 -> "Moderate confidence: $confidencePercent%"
+            else -> "Low confidence: $confidencePercent%"
         }
 
         val adviceText = when {
-            !mouldDetected -> "No mould was detected. You can try again with a clearer image if you are unsure."
-            maxConfidence >= 0.7 -> "Mould is likely present. Inspect the area closely, improve ventilation, and consider treatment."
-            maxConfidence >= 0.4 -> "Possible mould detected. Retake the image in better lighting and inspect the area."
-            else -> "This result has low confidence. Try another photo from a closer angle with better lighting."
+            !mouldDetected -> "No mould detected. Retake if unsure."
+            maxConfidence >= 0.7 -> "Likely mould present. Improve ventilation."
+            maxConfidence >= 0.4 -> "Possible mould. Retake in better lighting."
+            else -> "Low confidence result. Try another angle."
         }
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+
+            // 🔴 RESULT BANNER
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        if (mouldDetected) Color(0xFFFFE0B2) else Color(0xFFE8F5E9), // conlfict, change if looks off
-                        // color = MaterialTheme.colorScheme.errorContainer
-                        RoundedCornerShape(12.dp)
+                        if (mouldDetected)
+                            Color(0xFFD32F2F) // 🔴 RED
+                        else
+                            Color(0xFFE8F5E9),
+                        RoundedCornerShape(10.dp)
                     )
-                    .padding(16.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
+
                 Icon(
-                    imageVector = if (mouldDetected) Icons.Default.Warning else Icons.Default.CheckCircle,
-                    contentDescription = "Result icon",
-                    tint = if (mouldDetected) Color(0xFFD32F2F) else Color(0xFF2E7D32)
-                    // conflict change if looks off
-                    //MaterialTheme.colorScheme.error
+                    imageVector = if (mouldDetected)
+                        Icons.Default.Warning
+                    else
+                        Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = Color.White
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 Column {
                     Text(
                         text = resultTitle,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.White
                     )
+
                     Text(
                         text = resultSubtitle,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.85f)
                     )
                 }
             }
 
+            // 🖼 IMAGE
             if (imageUrl.isNotBlank()) {
-                Column {
-                    Text(
-                        text = "Analyzed Image",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Image(
-                        painter = rememberAsyncImagePainter(fullImageUrl),
-                        contentDescription = "Analyzed mould image",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(320.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+                Image(
+                    painter = rememberAsyncImagePainter(fullImageUrl),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    contentScale = ContentScale.Crop
+                )
             }
 
+            // 📊 SUMMARY
             Surface(
-                shape = RoundedCornerShape(16.dp),
-                tonalElevation = 2.dp,
+                shape = RoundedCornerShape(12.dp),
+                tonalElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Analysis Summary",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = message.ifBlank { "Prediction complete" },
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Confidence: $confidencePercent%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                Column(modifier = Modifier.padding(12.dp)) {
+
+                    Text("Analysis Summary", style = MaterialTheme.typography.titleMedium)
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(message.ifBlank { "Prediction complete" })
+                    Text("Confidence: $confidencePercent%")
                 }
             }
-            // Suggested Remedies
-            Text(
-                "Suggested Remedies", style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+
+            // 🧠 REMEDIES
+            Text("Suggested Remedies", style = MaterialTheme.typography.titleMedium)
 
             Surface(
-                shape = RoundedCornerShape(16.dp),
-                tonalElevation = 2.dp,
+                shape = RoundedCornerShape(12.dp),
+                tonalElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Recommended Action",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = adviceText,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                Column(modifier = Modifier.padding(12.dp)) {
+
+                    Text("Recommended Action")
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(adviceText)
                 }
             }
 
+            // 🔵 TRY AGAIN BUTTON
             Button(
                 onClick = {
                     context.startActivity(Intent(context, UploadActivity::class.java))
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(44.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black,
+                    containerColor = Color(0xFF2196F3), // 🔵 BLUE
                     contentColor = Color.White
                 ),
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Try Another Image")
             }
 
+            // ⚫ VIEW MORE BUTTON
             Button(
                 onClick = {
                     context.startActivity(Intent(context, ProductsActivity::class.java))
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(44.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF06A546),
-                    contentColor = Color.Black
-                )
+                    containerColor = Color.Black, // ⚫ BLACK
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text("View More Remedies")
-            }
-
-        }
-    }
-
-    @Composable
-    fun RemedyCard(title: String, description: String, onClick: () -> Unit) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    title, style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(12.dp))
-                Button(
-                    onClick = onClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("View Details")
-                }
             }
         }
     }
