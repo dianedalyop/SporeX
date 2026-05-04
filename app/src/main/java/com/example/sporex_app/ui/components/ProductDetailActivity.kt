@@ -69,7 +69,7 @@ private fun ProductDetailScreen(productId: String) {
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomNavBar(currentScreen = "products") },
-        containerColor = sporexGreen
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
         Column(
@@ -90,7 +90,7 @@ private fun ProductDetailScreen(productId: String) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier
                         .size(28.dp)
                         .clickable { (context as? ComponentActivity)?.finish() }
@@ -100,7 +100,7 @@ private fun ProductDetailScreen(productId: String) {
 
                 Text(
                     text = "Method & Safety",
-                    color = Color.White,
+                    color =MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.titleLarge
                 )
@@ -115,7 +115,7 @@ private fun ProductDetailScreen(productId: String) {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
 
@@ -124,7 +124,7 @@ private fun ProductDetailScreen(productId: String) {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(error!!, color = Color.White)
+                        Text(error!!, color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
 
@@ -141,7 +141,7 @@ private fun ProductDetailScreen(productId: String) {
                         // MAIN CARD
                         Card(
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             elevation = CardDefaults.cardElevation(4.dp)
                         ) {
                             Column(Modifier.padding(16.dp)) {
@@ -149,28 +149,28 @@ private fun ProductDetailScreen(productId: String) {
                                 Text(
                                     detail!!.name,
                                     style = MaterialTheme.typography.titleLarge,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Spacer(Modifier.height(6.dp))
 
                                 Text(
                                     "Best for: ${detail!!.best_for}",
-                                    color = Color.DarkGray
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
 
                                 Spacer(Modifier.height(6.dp))
 
                                 Text(
                                     "Safety: ${detail!!.warning}",
-                                    color = Color(0xFFD32F2F)
+                                    color = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
 
                         Text(
                             "Steps",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             style = MaterialTheme.typography.titleMedium
                         )
 
@@ -178,14 +178,14 @@ private fun ProductDetailScreen(productId: String) {
 
                             Card(
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                 elevation = CardDefaults.cardElevation(2.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = "${index + 1}. $step",
                                     modifier = Modifier.padding(14.dp),
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }

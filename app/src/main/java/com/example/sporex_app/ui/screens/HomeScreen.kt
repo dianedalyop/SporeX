@@ -55,9 +55,16 @@ fun HomeScreen(
 
     var stepIndex by remember { mutableStateOf(0) }
 
+
+    val userEmail = context
+        .getSharedPreferences("auth", Context.MODE_PRIVATE)
+        .getString("user_email", "") ?: ""
+
     var showOnboarding by rememberSaveable {
-        mutableStateOf(onboardingPrefs.isFirstLaunch())
+        mutableStateOf(!onboardingPrefs.isOnboarded(userEmail))
     }
+
+
 
     var scan by remember { mutableStateOf<ScanHistoryDto?>(null) }
     LaunchedEffect(Unit) {
@@ -137,12 +144,12 @@ fun HomeScreen(
                         if (stepIndex < onboardingSteps.lastIndex) {
                             stepIndex++
                         } else {
-                            onboardingPrefs.finishOnboarding()
+                            onboardingPrefs.setOnboarded(userEmail)
                             showOnboarding = false
                         }
                     },
                     onSkip = {
-                        onboardingPrefs.finishOnboarding()
+                        onboardingPrefs.setOnboarded(userEmail)
                         showOnboarding = false
                     }
                 )
@@ -194,7 +201,7 @@ private fun PreviousCaseCard(
         )
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 

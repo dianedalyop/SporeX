@@ -1,5 +1,5 @@
 package com.example.sporex_app.useraccount
-import com.example.sporex_app.useraccount.LoginActivity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.sp
 import android.widget.Toast
 import com.example.sporex_app.network.RegisterRequest
 import com.example.sporex_app.network.RetrofitClient
-import com.example.sporex_app.network.SporexApi
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
-import kotlinx.coroutines.coroutineScope
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.example.sporex_app.MainActivity
 import kotlinx.coroutines.launch
 
 class RegisterActivity : ComponentActivity() {
@@ -47,9 +47,15 @@ fun RegisterScreen() {
     val context = LocalContext.current
     val activity = context as? RegisterActivity
 
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
+
+    val sharedPrefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+    sharedPrefs.edit()
+        .putString("user_email", email)
+        .apply()
 
     Scaffold(
         topBar = {
@@ -108,11 +114,13 @@ fun RegisterScreen() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
+
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation()
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -131,13 +139,24 @@ fun RegisterScreen() {
                             )
 
                             if (response.isSuccessful) {
-                                Log.d("REGISTER", "Success: ${response.body()}")
+
+                                context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                                    .edit()
+                                    .putString("user_email", email)
+                                    .apply()
 
                                 Toast.makeText(
                                     context,
                                     "Account created successfully!",
                                     Toast.LENGTH_SHORT
                                 ).show()
+
+                                val intent = Intent(context, MainActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+
+                                context.startActivity(intent)
+
 
                             } else {
                                 Log.e("REGISTER", "Error: ${response.code()}")

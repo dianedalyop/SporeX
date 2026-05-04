@@ -1,6 +1,7 @@
 package com.example.sporex_app.useraccount
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -180,7 +181,18 @@ fun UserSettingsScreen(
                     showNotificationsDialog = true
                 }
 
-                SettingsOption("Log out") { }
+                SettingsOption("Log out") {
+                    context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                        .edit()
+                        .clear()
+                        .apply()
+
+                    val intent = Intent(context, LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+
+                    context.startActivity(intent)
+                }
             }
         }
     }

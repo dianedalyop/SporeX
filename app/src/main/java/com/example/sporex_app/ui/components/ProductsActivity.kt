@@ -170,7 +170,7 @@ fun ProductsScreen(onSelect: (String) -> Unit) {
                                     .clickable { onSelect(p.id) },
                                 shape = RoundedCornerShape(14.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = Color.White
+                                    containerColor = MaterialTheme.colorScheme.surface
                                 ),
                                 elevation = CardDefaults.cardElevation(2.dp)
                             ) {
@@ -182,14 +182,14 @@ fun ProductsScreen(onSelect: (String) -> Unit) {
                                     Text(
                                         text = p.name,
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
 
                                     Spacer(Modifier.height(6.dp))
 
                                     Text(
                                         text = "Best for: ${p.best_for}",
-                                        color = Color.DarkGray
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                     )
 
                                     Spacer(Modifier.height(6.dp))
@@ -200,7 +200,7 @@ fun ProductsScreen(onSelect: (String) -> Unit) {
                                         else
                                             "Standard option",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = sporexGreen
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
