@@ -50,8 +50,11 @@ data class ReadingResponse(
 
 
 data class ScanResponse(
+    val success: Boolean? = null,
+    val message: String? = null,
     val mould_detected: Boolean,
     val max_confidence: Double?
+
 )
 
 data class UpdateProfileResponse(
@@ -59,5 +62,17 @@ data class UpdateProfileResponse(
     val message: String,
     val username: String?,
     val email: String?,
+    val profile_image: String?
+)
+data class LoginResponse(
+    val success: Boolean,
+    val message: String,
+    val user: UserResponse?
+)
+
+data class UserResponse(
+    val email: String?,
+    val username: String?,
+    val name: String?,
     val profile_image: String?
 )

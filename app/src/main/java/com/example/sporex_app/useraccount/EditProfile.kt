@@ -30,6 +30,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,6 +80,16 @@ class EditProfileActivity : ComponentActivity() {
 
                                     val body = response.body()
 
+                                    UserSession.saveUser(
+                                        context,
+                                        body?.username ?: updatedUsername,
+                                        body?.email ?: updatedEmail
+                                    )
+
+                                    body?.profile_image?.let {
+                                        UserSession.saveImage(context, it)
+                                    }
+
                                     val resultIntent = Intent().apply {
                                         putExtra("username", body?.username ?: updatedUsername)
                                         putExtra("email", body?.email ?: updatedEmail)
@@ -87,7 +98,7 @@ class EditProfileActivity : ComponentActivity() {
 
                                     setResult(Activity.RESULT_OK, resultIntent)
                                     finish()
-                                }  else {
+                                } else {
                                     Toast.makeText(context, "Update failed: ${response.code()}", Toast.LENGTH_LONG).show()
                                 }
 
@@ -185,11 +196,14 @@ fun EditProfileScreen(
                     }
 
                      !imageUrl.isNullOrEmpty() -> {
-                        Image(
-                            painter = rememberAsyncImagePainter(imageUrl),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                         Image(
+                             painter = rememberAsyncImagePainter(imageUrl),
+                             contentDescription = null,
+                             contentScale = ContentScale.Crop,
+                             modifier = Modifier
+                                 .fillMaxSize()
+                                 .clip(CircleShape)
+                         )
                     }
 
                      else -> {

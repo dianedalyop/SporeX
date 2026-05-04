@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.content.Context
+import com.example.sporex_app.network.ScanHistoryDto
 import com.example.sporex_app.network.ScanResponse
 import com.example.sporex_app.network.RetrofitClient
 import com.example.sporex_app.ui.navigation.TopBar
@@ -57,12 +59,25 @@ fun HomeScreen(
         mutableStateOf(onboardingPrefs.isFirstLaunch())
     }
 
-    var scan by remember { mutableStateOf<ScanResponse?>(null) }
-
+    var scan by remember { mutableStateOf<ScanHistoryDto?>(null) }
     LaunchedEffect(Unit) {
+        val userEmail = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+            .getString("user_email", "") ?: ""
+
         try {
-            scan = RetrofitClient.api.getLatestScan()
+            val response = RetrofitClient.api.getUserScans(userEmail)
+
+            if (response.isSuccessful) {
+                scan = response.body()
+                    .orEmpty()
+                    .maxByOrNull { it.created_at ?: "" }
+
+                println("HOME LATEST SCAN: $scan")
+            } else {
+                println("HOME SCAN ERROR CODE: ${response.code()}")
+            }
         } catch (e: Exception) {
+            println("HOME SCAN ERROR: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -165,7 +180,7 @@ private fun CameraCard(onUploadClick: () -> Unit) {
 
 @Composable
 private fun PreviousCaseCard(
-    scan: ScanResponse?,
+    scan: ScanHistoryDto?,
     onClick: () -> Unit
 ) {
     Card(
@@ -197,20 +212,12 @@ private fun PreviousCaseCard(
                     text = scan?.max_confidence?.let {
                         "${(it * 100).toInt()}%"
                     } ?: "--%",
-                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                    style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Text(
-                    text = scan?.let {
-                        if (it.mould_detected) {
-                            "SPOREX detected ${(it.max_confidence!! * 100).toInt()}% likelihood of mould."
-                        } else {
-                            "No mould detected in the last scan."
-                        }
-                    } ?: "No previous scan available"
-                )
+
 
                 Spacer(Modifier.height(4.dp))
 
