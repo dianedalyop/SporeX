@@ -1,264 +1,255 @@
 # SporeX
-SporeX is a mold detection and prevention system that combines image recognition with IoT sensor data.
-## 👥 Team Members & Roles
 
-| **Team Member** | **Roles / Responsibilities** |
-|------------------|-------------------------------|
-| **Meghan Keightley** | Creative Lead, UX/UI Designer & Frontend Operations |
-| **Xu Teck Tan** | Lead Hardware & Security |
-| **Wiktor Teter** | Team Lead, Lead Tester, Database Operations |
-| **Eljesa Mesi** | Lead Scrum Master / Overall Support |
-| **Diane Jugul Dalyop** | Backend Functionality & Operations, Team Researcher |
+**Mobile Mold Detection, Scan History, Community Support and Environmental Awareness App**
 
----
-
-# 👷 SporeX — Developer Setup Guide
-
-*Backend: FastAPI • Frontend: Android Studio • Database: MongoDB Atlas*
- 
----
-
-## 📦 1. Clone the Repository
-
-```bash
-git clone https://github.com/<your-org>/<your-repo>.git
-cd <your-repo>
-```
-
-You should now see this folder structure:
-
-```
-SporeX/
-│
-├── app/                 ← ANDROID STUDIO PROJECT (main app module)
-├── sporex-backend/      ← FASTAPI BACKEND (VS Code)
-│
-├── gradle/              ← Android build system
-├── .gradle/
-├── .idea/
-├── .kotlin/
-│
-├── build.gradle.kts
-├── gradlew
-├── gradlew.bat
-├── settings.gradle.kts
-├── README.md
-└── .gitignore
-```
+![Android](https://img.shields.io/badge/Android-Kotlin-green)
+![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-blue)
+![Backend](https://img.shields.io/badge/Backend-FastAPI-orange)
+![Database](https://img.shields.io/badge/Database-MongoDB-brightgreen)
+![API](https://img.shields.io/badge/API-Retrofit-purple)
+![Deployment](https://img.shields.io/badge/Hosted%20On-Render-black)
 
 ---
 
-## 🔧 2. Backend Setup (FastAPI + MongoDB Atlas)
+## Table of Contents
 
-We develop & run the backend inside **VS Code**.
-
----
-
-### ✔️ 2.1 Open the Backend Folder in VS Code
-
-```
-File → Open Folder → sporex-backend
-```
-
----
-
-### ✔️ 2.2 Install Required VS Code Extension
-
-#### 🟦 REST Client (Huachao Mao)
-
-This extension allows us to test API endpoints using `.http` files.
-
-Install via:
-
-```
-VS Code → Extensions → search "REST Client"
-```
+- [Project Overview](#project-overview)
+- [App Preview](#app-preview)
+- [What SporeX Does](#what-sporex-does)
+- [Main Features](#main-features)
+- [Tech Stack](#tech-stack)
+- [Architecture Overview](#architecture-overview)
+- [Repository Structure](#repository-structure)
+- [Local Setup](#local-setup)
+- [Backend Setup](#backend-setup)
+- [Android App Setup](#android-app-setup)
+- [API Connection](#api-connection)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Known Setup Notes](#known-setup-notes)
+- [Project Team](#project-team)
 
 ---
 
-## 🐍 3. Create a Python Virtual Environment
+## Project Overview
 
-Open a VS Code terminal inside `sporex-backend`:
+**SporeX** is a mobile application designed to help users identify and manage possible mold problems in indoor environments.
 
-```bash
-python -m venv venv
-```
+The app focuses on giving users a simple way to:
 
-Activate it:
+- scan or upload mold-related images
+- view scan history
+- manage previous cases
+- interact with a community page
+- create and reply to posts
+- manage user settings
+- control app personalisation options
+- connect with backend data stored through MongoDB
 
-### Windows
-
-```bash
-venv\Scripts\activate
-```
-
-### macOS/Linux
-
-```bash
-source venv/bin/activate
-```
+The project was developed as part of the final year project for **Team Ozone**. The system combines an Android mobile app with a backend API and database support.
 
 ---
 
-## 📥 4. Install Backend Dependencies
+## App Preview
 
-```bash
-pip install -r requirements.txt
-```
+### Authentication Screens
 
-If Pydantic email validation is required:
+| Login | Register |
+|---|---|
+|<img width="360" height="787" alt="image" src="https://github.com/user-attachments/assets/e81971ae-924f-4c14-b5f3-529b907833c8" />|<img width="360" height="783" alt="image" src="https://github.com/user-attachments/assets/59070167-3de2-4e34-a228-88ca82dfd6ed" />|
 
-```bash
-pip install "pydantic[email]"
-```
+### Main App Screens
 
----
+| Home | Profile | Settings |
+|---|---|---|
+| <img width="448" height="973" alt="image" src="https://github.com/user-attachments/assets/a9eb65b2-2e27-44a2-88cb-636e87eca762" />|<img width="448" height="973" alt="image" src="https://github.com/user-attachments/assets/2bf9e7dd-b99c-4649-bbeb-d04b687c246a" />|<img width="448" height="973" alt="image" src="https://github.com/user-attachments/assets/7a76246a-700a-4a73-91f0-2d92e8dcfaf6" />|
 
-## 🔐 5. Create Your `.env` File
 
-*(This file must **not** be committed to Git.)*
+### Mold Scan and History
 
-Inside **sporex-backend**, create:
+| Scan Page | Scan Result | History |
+|---|---|---|
+|<img width="364" height="780" alt="image" src="https://github.com/user-attachments/assets/5206aaa2-b835-4720-955c-22fbc8fa8e89" />|<img width="363" height="785" alt="image" src="https://github.com/user-attachments/assets/2c6c9f74-347f-4b57-a9a6-98ad85d338fa" />| <img width="362" height="785" alt="image" src="https://github.com/user-attachments/assets/1081069e-1fdb-4ab4-aaae-97281bb35237" />|
 
-```
-.env
-```
 
-Add:
+### Community Page
 
-```
-MONGODB_URI="MONGODB_URI="mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER_NAME>.<CLUSTER_ID>.mongodb.net/<DATABASE_NAME>?retryWrites=true&w=majority&appName=<APP_NAME>"
-MONGODB_DB_NAME="SporexDB"
-```
+| Community Feed | Create Post | Replies |
+|---|---|---|
+|<img width="362" height="784" alt="image" src="https://github.com/user-attachments/assets/036bb75e-a86a-4975-a366-3096a08e4e4a" />|<img width="366" height="786" alt="image" src="https://github.com/user-attachments/assets/73d79faf-b89e-411b-b251-b32668b16901" />| <img width="357" height="786" alt="image" src="https://github.com/user-attachments/assets/5a650688-7c31-438d-9461-b0dd2ba8a770" />|
 
-Each team member must place **their own** Atlas URI here.
 
 ---
 
-## 🌐 6. MongoDB Atlas Setup (Required for Backend Developers)
+## What SporeX Does
 
-Every backend developer needs:
+SporeX is built around the idea of helping users deal with mold issues earlier and in a more organised way.
 
-### ✔ A database user
+The app gives users a place to scan or record possible mold cases, keep a history of previous scans, adjust privacy and personalisation settings, and use a community page to share posts or ask questions.
 
-Atlas → **Security → Database Access**
-
-### ✔ IP whitelist entry
-
-Atlas → **Network Access → Add IP**
-
-Use:
-
-```
-0.0.0.0/0
-```
-
-*(Development only — will change later.)*
-
-No need to manually add documents — FastAPI handles user creation and validation.
+The system is not only focused on the visual side of mold detection. It also supports the wider project idea of environmental awareness, where humidity, temperature and device data can help explain why mold risk may be increasing.
 
 ---
 
-## ▶️ 7. Run the Backend
+## Main Features
 
-Inside `sporex-backend`:
+### User Authentication
 
-```bash
-uvicorn app:app --reload --port 5000
-```
+Users can create an account and log in through the Android app. Login details are sent to the backend using Retrofit API calls. When a login is successful, user details such as email and username are saved locally so they can be reused in the app session. The current app uses a hosted Render backend URL through the Retrofit client.
 
-The backend now runs at:
+Main authentication features include:
 
-```
-http://localhost:8000
-```
-
----
-
-## 🧪 8. Test API Endpoints Using REST Client
-
-Open **test.http** in VS Code.
-
-Example:
-
-```http
-POST http://localhost:8000/api/login
-Content-Type: application/json
-
-{
-  "email": "test@sporex.com",
-  "password": "123456"
-}
-```
-
-Click **Send Request** above the request.
-
-Expected response:
-
-```json
-{
-  "success": true,
-  "message": "Login OK"
-}
-```
+- user registration
+- user login
+- local session storage
+- username and email persistence
+- login error handling
+- redirect to main app after successful login
 
 ---
 
-## 🤖 9. Android App Setup
+### Profile and Account Management
 
-Open the **root project** in Android Studio:
+The profile area gives users access to key parts of the app, including:
 
-```
-File → Open → <repo-root>
-```
+- Community
+- History
+- My Device
+- Settings
 
-Android Studio automatically loads:
+The profile screen also allows the user to open the edit profile page and update displayed account details.
 
-```
-/sporex_app
-```
+Account management includes:
 
----
+- edit profile
+- change password screen
+- delete account confirmation
+- account options page
+- navigation back to login after account deletion
 
-### ✔ API Base URL for Emulator
-
-The Android emulator **cannot** use `localhost`.
-Use the special emulator IP:
-
-```
-10.0.2.2
-```
-
-Your Retrofit client is already set to:
-
-```
-http://10.0.2.2:8000/api/
-```
+The account page includes a delete confirmation step where the user must type `DELETE` before continuing.
 
 ---
 
-### ✔ Cleartext Networking
+### Settings and Personalisation
 
-*(Already configured in the project)*
+SporeX includes a settings area where users can manage app preferences.
 
-* `network_security_config.xml`
-* `AndroidManifest.xml` → `usesCleartextTraffic="true"`
+Current settings include:
 
-This allows the Android app to call a local HTTP backend.
+- dark mode
+- notifications
+- data personalisation
+- app customisation
+- account settings
+
+The settings model supports `dark_mode`, `notifications_enabled`, `data_personalisation`, and an `app_customisation` map.
+
+Dark mode can also be saved locally using shared preferences so the app remembers the user's choice.
 
 ---
 
-## 🟢 10. Run the App
+### Scan History
 
-1. Start the backend
-2. Launch Android Emulator
-3. Open the SporeX app
-4. Press **Login**
+The scan history feature allows users to keep track of previous mold scan records.
 
-If everything is configured correctly, you will receive a valid response.
+This helps the user:
 
-End-to-end flow:
+- review previous mold cases
+- check when scans were created
+- separate recent and older scan records
+- manage previous results
+- delete scan history cases where needed
 
-```
-Android → FastAPI → MongoDB Atlas → FastAPI → Android
-```
+The history feature is important because mold problems often need to be monitored over time rather than checked only once.
+
+---
+
+### Community Page
+
+The community feature allows users to interact with other users through posts and replies.
+
+Community functionality includes:
+
+- viewing community posts
+- creating posts
+- replying to posts
+- connecting posts to backend data
+- deleting posts where allowed
+- showing delete options only for the correct user
+
+This feature supports the wider aim of SporeX by giving users a place to ask questions, share mold-related experiences and get support.
+
+---
+
+### Device and Environmental Support
+
+SporeX also includes support for device-related features.
+
+The wider project includes environmental awareness, where sensor readings such as humidity, temperature and CO2 can help users understand indoor mold risk.
+
+Possible environmental data includes:
+
+- humidity
+- temperature
+- CO2
+- device timestamp
+- stored device readings
+- mold risk context
+
+This connects to the larger project goal of helping users prevent mold, not just identify it after it appears.
+
+---
+
+## Tech Stack
+
+### Mobile App
+
+- Android Studio
+- Kotlin
+- Jetpack Compose
+- Material 3
+- Retrofit
+- Gson Converter
+- OkHttp Logging Interceptor
+- SharedPreferences
+- Android Instrumentation Tests
+- Compose UI Tests
+
+### Backend
+
+- Python
+- FastAPI
+- REST API endpoints
+- Hosted backend on Render
+- JSON request and response structure
+- API testing through Postman
+
+### Database
+
+- MongoDB Atlas
+- Collections for users, posts, replies, scan history, settings and related app data
+
+### Testing Tools
+
+- Android Studio test runner
+- Jetpack Compose UI testing
+- Postman
+- Postman automated/scheduled tests
+- Backend endpoint testing
+- Manual user testing
+
+---
+
+## Architecture Overview
+
+```text
+Android App
+    |
+    | Retrofit API Calls
+    |
+FastAPI Backend
+    |
+    | Reads and writes data
+    |
+MongoDB Atlas Database
