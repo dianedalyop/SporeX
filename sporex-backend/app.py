@@ -266,7 +266,7 @@ async def register(body: RegisterBody):
 
     username = body.username or body.email.split("@")[0]
     password_hash = hash_password(body.password)
-    otp = generate_otp()
+  #  otp = generate_otp()
 
     user_doc = {
         "email": body.email,
@@ -275,9 +275,9 @@ async def register(body: RegisterBody):
          "profile_image": None,
         "role": "member",
         "status": "active",
-        "is_verified": False,
-        "otp": otp,
-        "otp_expiry": datetime.now(timezone.utc) + timedelta(minutes=10),
+       "is_verified": True,
+       "otp": None,
+       "otp_expiry": None,
         "created_at": datetime.now(timezone.utc),
         "settings": {
             "dark_mode": False,
@@ -290,11 +290,15 @@ async def register(body: RegisterBody):
     if body.name:
         user_doc["name"] = body.name
 
+    #--users_col.insert_one(user_doc)
+    #--send_otp_email(body.email, otp)
+
+    #-- to avoid breaks during expo with many users
+   #-- return {"success": True, "message": "User registered"}
+
     users_col.insert_one(user_doc)
-    send_otp_email(body.email, otp)
 
-    return {"success": True, "message": "User registered"}
-
+    return {"success": True,"message": "User registered successfully"}
 
 @app.post("/api/login")
 async def login(body: LoginBody):
