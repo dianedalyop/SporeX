@@ -243,7 +243,7 @@ This connects to the larger project goal of helping users prevent mold, not just
 
 ## Architecture Overview
 
-```text
+
 Android App
     |
     | Retrofit API Calls
@@ -266,7 +266,7 @@ MongoDB Atlas Database
 
 ---
 
-## repository-structure
+## Repository Structure
 
 The exact structure may change as development continues, but the project is generally organised like this:
 
