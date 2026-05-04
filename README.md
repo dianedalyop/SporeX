@@ -253,3 +253,411 @@ FastAPI Backend
     | Reads and writes data
     |
 MongoDB Atlas Database
+
+## How It Works
+
+1. The user registers or logs into the Android app.
+2. The app stores basic session details locally, such as username and email.
+3. Retrofit sends requests from the Android app to the FastAPI backend.
+4. The backend handles requests such as login, register, posts, replies, settings and history.
+5. MongoDB stores the project data.
+6. The app displays the returned data inside Jetpack Compose screens.
+7. Users can manage their profile, view history, use community posts and adjust settings.
+
+---
+
+## repository-structure
+
+The exact structure may change as development continues, but the project is generally organised like this:
+
+```text
+SporeX/
+|-- app/                         # Android mobile application
+|   |-- src/
+|   |   |-- main/
+|   |   |   |-- java/com/example/sporex_app/
+|   |   |   |   |-- network/      # Retrofit client, API models and requests
+|   |   |   |   |-- useraccount/  # Login, register, profile, settings and account screens
+|   |   |   |   |-- ui/           # Compose UI screens and navigation
+|   |   |   |   |-- utils/        # Utility functions such as dark mode helpers
+|   |   |-- androidTest/         # Android instrumentation and Compose UI tests
+|   |   |-- test/                # Unit tests
+|
+|-- backend/                     # FastAPI backend, if stored in repo
+|-- docs/
+|   |-- images/                  # README screenshots
+|-- README.md
+```
+
+---
+
+## Local Setup
+
+### Prerequisites
+
+Before running the project locally, make sure you have:
+
+- Android Studio installed
+- Android SDK installed
+- Kotlin support enabled
+- Python installed for backend development
+- MongoDB Atlas connection details
+- Internet access for the hosted backend or database
+- Git installed
+- Postman installed for API testing
+
+---
+
+## Android App Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone <your-repo-url>
+cd SporeX
+```
+
+### 2. Open in Android Studio
+
+Open the project folder in Android Studio.
+
+Allow Gradle to sync fully before running the app.
+
+### 3. Check the Backend URL
+
+The app uses Retrofit to connect to the backend.
+
+The current Retrofit client uses the hosted Render backend:
+
+```kotlin
+private const val BASE_URL = "https://sporex.onrender.com/"
+```
+
+This is located in:
+
+```text
+app/src/main/java/com/example/sporex_app/network/RetrofitClient.kt
+```
+
+The Retrofit client also uses:
+
+- OkHttp logging
+- Gson converter
+- `SporexApi` interface
+
+---
+
+## API Connection
+
+### Hosted Backend
+
+The deployed backend URL is:
+
+```text
+https://sporex.onrender.com/
+```
+
+Use this when testing the app without running the backend locally.
+
+### Local Backend
+
+If running the backend locally, change the Retrofit base URL.
+
+For Android Emulator:
+
+```kotlin
+private const val BASE_URL = "http://10.0.2.2:5000/"
+```
+
+For a real phone on the same Wi-Fi:
+
+```kotlin
+private const val BASE_URL = "http://YOUR_LAPTOP_IP:5000/"
+```
+
+Example:
+
+```kotlin
+private const val BASE_URL = "http://192.168.1.90:5000/"
+```
+
+Make sure:
+
+- the phone and laptop are on the same network
+- the backend is running
+- the firewall is not blocking the port
+- the backend port matches the URL
+
+---
+
+## Backend Setup
+
+Adjust this section depending on where the backend is stored in your repository.
+
+### 1. Go to Backend Folder
+
+```bash
+cd backend
+```
+
+### 2. Create a Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+Activate it on Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Activate it on macOS/Linux:
+
+```bash
+source venv/bin/activate
+```
+
+### 3. Install Requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Add Environment Variables
+
+The backend may need environment variables such as:
+
+```text
+MONGO_URI=<your-mongodb-atlas-uri>
+DATABASE_NAME=<your-database-name>
+```
+
+### 5. Run the Backend
+
+```bash
+python app.py
+```
+
+or, if using Uvicorn:
+
+```bash
+uvicorn app:app --reload --host 0.0.0.0 --port 5000
+```
+
+The backend should then run at:
+
+```text
+http://localhost:5000
+```
+
+---
+
+## Main Backend Areas
+
+### Authentication
+
+- Register user
+- Login user
+- Store user details
+- Return success or error messages
+
+### Community Posts
+
+- Create post
+- Get all posts
+- Get post by ID
+- Add replies
+- Delete post
+
+### Scan History
+
+- Store scan result
+- Fetch user scan history
+- Group history by date
+- Delete history case
+
+### Settings
+
+- Fetch user settings
+- Update dark mode
+- Update notifications
+- Update data personalisation preference
+
+### Device Data
+
+- Store device/environment readings
+- Support mold risk context through environmental data
+
+---
+
+## Testing
+
+Testing was an important part of the SporeX project.
+
+The project includes several types of testing:
+
+- frontend Android UI testing
+- backend Postman testing
+- endpoint response testing
+- manual user testing
+- automated Postman scheduled testing
+
+---
+
+## Android Tests
+
+Android tests were created to check important screens and flows in the mobile app.
+
+Examples of tested areas include:
+
+- login screen
+- register screen
+- profile page
+- community page
+- mold result screen
+- settings page
+- navigation between screens
+
+Run Android unit tests with:
+
+```bash
+./gradlew test
+```
+
+On Windows:
+
+```bash
+.\gradlew test
+```
+
+Run connected Android tests with:
+
+```bash
+./gradlew connectedAndroidTest
+```
+
+On Windows:
+
+```bash
+.\gradlew connectedAndroidTest
+```
+
+---
+
+## Postman Tests
+
+Postman was used to test backend API endpoints.
+
+Tested areas include:
+
+- register endpoint
+- login endpoint
+- get posts
+- create post
+- get post by ID
+- add reply
+- delete post
+- settings endpoints
+- scan history endpoints
+
+Postman tests checked things such as:
+
+- correct status codes
+- valid JSON response
+- response body structure
+- success messages
+- error handling
+- response time
+- required fields
+
+Example Postman test checks:
+
+```javascript
+pm.test("Status code is successful", function () {
+    pm.expect(pm.response.code).to.be.oneOf([200, 201]);
+});
+
+pm.test("Response is valid JSON", function () {
+    pm.response.to.be.json;
+});
+
+pm.test("Response time is acceptable", function () {
+    pm.expect(pm.response.responseTime).to.be.below(2000);
+});
+```
+
+---
+
+## Automated API Testing
+
+After the backend was deployed, automated API testing became easier because the app no longer depended only on a local backend.
+
+Postman scheduled tests were used to run backend checks automatically and confirm that important endpoints were still working.
+
+This helped with:
+
+- checking deployed backend availability
+- catching endpoint issues earlier
+- keeping evidence for Mahara and project testing
+- showing that testing was repeated, not just done once manually
+
+---
+
+## Deployment
+
+### Backend Deployment
+
+The backend is deployed using Render.
+
+Current hosted backend:
+
+```text
+https://sporex.onrender.com/
+```
+
+The Android app connects to this hosted backend through Retrofit.
+
+### Database Hosting
+
+MongoDB Atlas is used as the cloud database.
+
+This allows the app and backend to access project data from the hosted environment.
+
+---
+
+## Known Setup Notes
+
+- If the Android app cannot connect to the backend, check the Retrofit `BASE_URL`.
+- For emulator testing, use `10.0.2.2` instead of `localhost`.
+- For real phone testing, use the laptop's local Wi-Fi IP address.
+- Make sure the backend port matches the URL used in the Android app.
+- If using the Render backend, the first request may be slow if the service has been inactive.
+- Do not commit private database connection strings.
+- Do not commit secret keys or environment files.
+- README images should be placed in `docs/images/` so GitHub can display them correctly.
+- If frontend tests fail after pulling new code, check whether screen text, content descriptions or variable names were changed.
+
+---
+
+## Project Team
+
+**Team Ozone**
+
+| Team Member | Role |
+|---|---|
+| Wiktor Teter | Team Lead, Lead Tester, Database Operations |
+| Meghan Keightley | Creative Lead, UX/UI Designer, Frontend Operations |
+| Xu Teck Tan | Lead Hardware and Security |
+| Eljesa Mesi | Lead Scrum Master, Overall Support |
+| Diane Jugul Dalyop | Backend Functionality and Operations, Team Researcher |
+
+---
+
+## Closing Note
+
+SporeX brings together mold scanning, scan history, user settings, community support and environmental awareness into one mobile app.
+
+The main goal of the project is to help users identify possible mold issues earlier, understand their indoor environment better, and keep their mold-related information organised in one place.
+
+This repository shows the Android application, backend API connection, database-supported features and testing work completed as part of the final year project.
