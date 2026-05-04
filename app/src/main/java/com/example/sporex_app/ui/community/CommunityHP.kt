@@ -84,18 +84,38 @@ class CommunityHP : ComponentActivity() {
                     topBar = { TopBar() },
                     bottomBar = { BottomNavBar(currentScreen = "community") },
                     floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = {
-                                createPostLauncher.launch(
-                                    Intent(context, CreatePostActivity::class.java)
-                                )
-                            },
-                            containerColor = colorResource(id = R.color.sporex_black),
-                            contentColor = colorResource(id = R.color.sporex_white)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("+", fontSize = 20.sp)
+
+                            FloatingActionButton(
+                                onClick = {
+                                    context.startActivity(
+                                        Intent(context, AsthmaSociety::class.java)
+                                    )
+                                },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Text("More")
+                            }
+
+                            FloatingActionButton(
+                                onClick = {
+                                    createPostLauncher.launch(
+                                        Intent(context, CreatePostActivity::class.java)
+                                    )
+                                },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Text(
+                                    "+",
+                                    fontSize = MaterialTheme.typography.titleLarge.fontSize
+                                )
+                            }
                         }
-                    }
+                     }
                 ) { padding ->
 
                     Box(

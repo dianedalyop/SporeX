@@ -101,7 +101,7 @@ fun CreatePostScreen(
                 selectedCategory = PostCategory.MISC
             }
         }
-
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = "Create Post",
             fontSize = 24.sp,

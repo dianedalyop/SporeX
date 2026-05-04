@@ -2,11 +2,11 @@ package com.example.sporex_app.ui.community
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -15,9 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sporex_app.R
@@ -27,18 +27,17 @@ import com.example.sporex_app.ui.theme.SPOREX_AppTheme
 import com.example.sporex_app.utils.isDarkMode
 
 class AsthmaSociety : ComponentActivity() {
-
-    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-
             val darkMode = isDarkMode(this)
-            SPOREX_AppTheme(darkTheme = darkMode) {
 
+            SPOREX_AppTheme(darkTheme = darkMode) {
                 Scaffold(
                     topBar = { TopBar() },
-                    bottomBar = { BottomNavBar(currentScreen = "community") }
+                    bottomBar = { BottomNavBar(currentScreen = "community") },
+                    containerColor = MaterialTheme.colorScheme.background
                 ) { padding ->
 
                     AsthmaSocietyFeed(
@@ -54,65 +53,85 @@ class AsthmaSociety : ComponentActivity() {
 fun AsthmaSocietyFeed(
     modifier: Modifier = Modifier
 ) {
-
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.primary)
-            .padding(16.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
         Card(
-            shape = RoundedCornerShape(24.dp),
-            border = BorderStroke(
-                2.dp,
-                colors.onSurface
-            ),
+            shape = RoundedCornerShape(28.dp),
+            border = BorderStroke(1.dp, colors.outlineVariant),
             colors = CardDefaults.cardColors(
                 containerColor = colors.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
 
             Column(
                 modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+
+
                 Image(
                     painter = painterResource(id = R.drawable.asthma),
                     contentDescription = "Asthma Society Logo",
                     modifier = Modifier
-                        .size(160.dp)
-                        .clip(RoundedCornerShape(20.dp))
+                        .size(140.dp)
+                        .clip(RoundedCornerShape(24.dp))
                 )
-                Spacer(modifier = Modifier.height(18.dp))
+
 
                 Text(
-                    text = "Asthma Society Collaborator Service",
+                    text = "Asthma Society of Ireland",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = colors.onSurface
+                    color = colors.onSurface,
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Connect with our medical collaborators via WhatsApp for consultation and support.",
+                    text = "Trusted healthcare support for asthma patients in partnership with SPOREX",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant,
-                    fontSize = 14.sp,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Divider(color = colors.outlineVariant)
+
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "💬 WhatsApp Medical Support",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = colors.onSurface,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Text(
+                        text = "Connect directly with qualified asthma professionals for guidance, advice, and support.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
                     onClick = {
-                        val phoneNumber = "+353 86 059 0132"
-
+                        val phoneNumber = "+353860590132" // cleaned format for WhatsApp
                         val uri = Uri.parse("https://wa.me/$phoneNumber")
 
                         context.startActivity(
@@ -121,13 +140,22 @@ fun AsthmaSocietyFeed(
                     },
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.onSurface,
-                        contentColor = colors.surface,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
                 ) {
-                    Text("WhatsApp Service")
+                    Text("Open WhatsApp Support")
                 }
+
+                Text(
+                    text = "Available for medical guidance only • Not emergency service",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

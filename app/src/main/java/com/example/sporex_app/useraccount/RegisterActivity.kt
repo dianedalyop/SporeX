@@ -21,11 +21,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import com.example.sporex_app.network.RegisterRequest
 import com.example.sporex_app.network.RetrofitClient
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.example.sporex_app.MainActivity
+import com.example.sporex_app.R
 import kotlinx.coroutines.launch
 
 class RegisterActivity : ComponentActivity() {
@@ -87,6 +90,14 @@ fun RegisterScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+
+            Image(
+                painter = painterResource(id = R.drawable.logoheader),
+                contentDescription = "Sporex Logo",
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .padding(bottom = 32.dp)
+            )
 
             Text(
                 text = "Create Account",

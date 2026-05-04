@@ -193,7 +193,7 @@ private fun PreviousCaseCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 170.dp)
+            .heightIn(min = 150.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
