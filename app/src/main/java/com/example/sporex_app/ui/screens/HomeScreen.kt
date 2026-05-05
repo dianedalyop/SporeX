@@ -27,6 +27,7 @@ import com.example.sporex_app.ui.onboarding.OnboardingOverlay
 import com.example.sporex_app.ui.onboarding.OnboardingPageOne
 import com.example.sporex_app.ui.onboarding.OnboardingStep
 
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -99,6 +100,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(innerPadding)
+                .navigationBarsPadding()
         ) {
 
             Column(

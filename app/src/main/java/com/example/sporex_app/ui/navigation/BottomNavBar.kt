@@ -34,16 +34,17 @@ fun BottomNavBar(currentScreen: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(70.dp)
+            .navigationBarsPadding()
+            .height(90.dp)
             .background(MaterialTheme.colorScheme.background)
-    ) {
+    )  {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 28.dp)
-                .offset(y = (-10).dp), // moved up more
+                .offset(y = (-18).dp), // moved up more
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

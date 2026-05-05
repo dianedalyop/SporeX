@@ -16,7 +16,8 @@ data class CreatePostRequest(
     val user_name: String,
     val post_name: String,
     val content: String,
-    val category: String
+    val category: String,
+    val image_url: String? = null
 )
 
 data class PostResponse(
@@ -36,6 +37,10 @@ data class CreateReplyRequest(
     val content: String
 )
 
+data class UploadImageResponse(
+    val success: Boolean,
+    val image_url: String
+)
 data class BasicResponse(
     val success: Boolean,
     val message: String

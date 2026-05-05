@@ -28,6 +28,8 @@ import com.example.sporex_app.ui.navigation.TopBar
 import com.example.sporex_app.ui.theme.SPOREX_AppTheme
 import com.example.sporex_app.useraccount.UserSession
 import com.example.sporex_app.utils.isDarkMode
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MyPostsActivity : ComponentActivity() {
@@ -88,7 +90,8 @@ fun MyPostsScreen() {
                 id = backendPost.id,
                 author = backendPost.user_name,
                 content = backendPost.content,
-                timestamp = backendPost.created_at ?: "Just now"
+                timestamp = backendPost.created_at ?: "Just now",
+                imageUrl = backendPost.image_url
             )
         }
 
@@ -181,7 +184,26 @@ fun PostCardModern(post: Post) {
             fontSize = 14.sp,
             color = colors.onSurface
         )
+        if (!post.imageUrl.isNullOrBlank()) {
+            Spacer(Modifier.height(10.dp))
 
+            val fullImageUrl =
+                if (post.imageUrl.startsWith("http")) {
+                    post.imageUrl
+                } else {
+                    "https://sporex.onrender.com".trimEnd('/') + post.imageUrl
+                }
+
+            AsyncImage(
+                model = fullImageUrl,
+                contentDescription = "Post image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(14.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
         Spacer(Modifier.height(12.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {

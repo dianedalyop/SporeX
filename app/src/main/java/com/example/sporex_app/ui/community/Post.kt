@@ -8,9 +8,8 @@ data class Post(
     val author: String,
     val content: String,
     val timestamp: String,
-    val category: String = "misc",
+    val imageUrl: String? = null
 )
-
 data class Comment(
     val id: Int,
     val author: String,

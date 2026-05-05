@@ -578,6 +578,36 @@ async def delete_post(post_id: str):
         "message": "Post deleted"
     }
 
+@app.post("/api/posts/upload-image")
+async def upload_post_image(file: UploadFile = File(...)):
+    allowed_types = {"image/jpeg", "image/jpg", "image/png"}
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Only JPG and PNG images are allowed")
+
+    file_bytes = await file.read()
+
+    if len(file_bytes) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image too large. Max size is 5MB.")
+
+    original_name = file.filename or "post_image.jpg"
+    ext = Path(original_name).suffix.lower()
+
+    if ext not in {".jpg", ".jpeg", ".png"}:
+        ext = ".jpg"
+
+    file_id = str(uuid.uuid4())
+    saved_path = UPLOAD_DIR / f"{file_id}{ext}"
+
+    with saved_path.open("wb") as buffer:
+        buffer.write(file_bytes)
+
+    validate_image_file(saved_path)
+
+    return {
+        "success": True,
+        "image_url": f"/uploads/{saved_path.name}"
+    }
 # ---------- AI image prediction ----------
 @app.post("/api/predict", response_model=PredictResponse)
 async def predict_image(

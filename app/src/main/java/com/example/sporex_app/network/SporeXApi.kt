@@ -5,6 +5,7 @@ import com.example.sporex_app.settings.SettingsResponse
 import com.example.sporex_app.settings.UpdateSettingsRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -108,4 +109,9 @@ interface SporexApi {
         @Part file: MultipartBody.Part? = null
     ): Response<UpdateProfileResponse>
 
+    @Multipart
+    @POST("api/posts/upload-image")
+    suspend fun uploadPostImage(
+        @Part file: MultipartBody.Part
+    ): Response<UploadImageResponse>
 }
