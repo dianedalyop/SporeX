@@ -17,6 +17,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import com.example.sporex_app.R
 import com.example.sporex_app.network.RetrofitClient
 import com.example.sporex_app.ui.navigation.BottomNavBar
@@ -184,13 +187,31 @@ fun CreatePostScreen(
                         scope.launch {
                             loading = true
                             error = null
+
                             try {
+                                var uploadedImageUrl: String? = null
+
+                                if (selectedImageUri != null) {
+                                    val imagePart = uriToMultipartBodyPart(context, selectedImageUri!!)
+
+                                    val uploadRes = RetrofitClient.api.uploadPostImage(imagePart)
+
+                                    if (uploadRes.isSuccessful) {
+                                        uploadedImageUrl = uploadRes.body()?.image_url
+                                    } else {
+                                        error = "Image upload failed (${uploadRes.code()})"
+                                        loading = false
+                                        return@launch
+                                    }
+                                }
+
                                 val res = RetrofitClient.api.createPost(
                                     CreatePostRequest(
                                         user_name = currentUsername,
                                         post_name = "Post",
                                         content = postContent,
-                                        category = selectedCategory.name.lowercase()
+                                        category = selectedCategory.name.lowercase(),
+                                        image_url = uploadedImageUrl
                                     )
                                 )
 
@@ -200,6 +221,7 @@ fun CreatePostScreen(
                                 } else {
                                     error = "Failed to create post (${res.code()})"
                                 }
+
                             } catch (e: Exception) {
                                 error = "Network error: ${e.localizedMessage ?: "Unknown error"}"
                             } finally {
@@ -232,3 +254,20 @@ fun CreatePostScreen(
     }
 }
 
+fun uriToMultipartBodyPart(
+    context: android.content.Context,
+    uri: Uri,
+    partName: String = "file"
+): MultipartBody.Part {
+    val inputStream = context.contentResolver.openInputStream(uri)
+    val bytes = inputStream?.readBytes() ?: ByteArray(0)
+
+    val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+    val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+
+    return MultipartBody.Part.createFormData(
+        partName,
+        "community_image.jpg",
+        requestBody
+    )
+}

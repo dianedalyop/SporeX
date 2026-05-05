@@ -580,11 +580,11 @@ async def delete_post(post_id: str):
 
 @app.post("/api/posts/upload-image")
 async def upload_post_image(file: UploadFile = File(...)):
-    allowed_types = {"image/jpeg", "image/jpg", "image/png"}
+    allowed_types = {"image/jpeg", "image/jpg", "image/png", "image/*"}
 
     if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Only JPG and PNG images are allowed")
-
+        print("POST IMAGE CONTENT TYPE:", file.content_type)
+        raise HTTPException(status_code=400, detail=f"Invalid image type: {file.content_type}")
     file_bytes = await file.read()
 
     if len(file_bytes) > 5 * 1024 * 1024:
