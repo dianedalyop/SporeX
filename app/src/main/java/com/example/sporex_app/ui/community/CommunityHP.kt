@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -305,13 +306,22 @@ fun CommunityPostCard(
             Text(post.content)
             Spacer(Modifier.height(10.dp))
             post.image_url?.let { url ->
+                val fullImageUrl =
+                    if (url.startsWith("http")) {
+                        url
+                    } else {
+                        "https://sporex.onrender.com$url"
+                    }
+
                 Spacer(Modifier.height(8.dp))
+
                 AsyncImage(
-                    model = url,
-                    contentDescription = null,
+                    model = fullImageUrl,
+                    contentDescription = "Post image",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(120.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
             Row {
@@ -381,6 +391,8 @@ fun FullPostView(
 
 @Preview(showBackground = true)
 @Composable
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview(showBackground = true)
 fun CommunityScreenPreview() {
 
     val samplePosts = listOf(

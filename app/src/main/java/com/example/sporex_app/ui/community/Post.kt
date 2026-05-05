@@ -22,7 +22,6 @@ data class CommunityPost(
     val content: String,
     val timestamp: String,
     val category: PostCategory,
-    var likes: Int = 0,
-    var isLiked: Boolean = false,
-    val comments: MutableList<Comment> = mutableListOf()
+    val imageUrl: String? = null,
+    val comments: MutableList<Comment>
 )

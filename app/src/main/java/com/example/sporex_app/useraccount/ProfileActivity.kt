@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -144,7 +145,7 @@ private fun ProfileContent(
     ) {
 
         Box(
-            modifier = Modifier.size(170.dp),
+            modifier = Modifier.size(160.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
 
@@ -158,17 +159,17 @@ private fun ProfileContent(
                     painter = rememberAsyncImagePainter(imageUrl),
                     contentDescription = null,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                )
+                        .size(150.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop)
             } else {
                 Image(
                     painter = painterResource(id = R.drawable.profilepicture),
                     contentDescription = null,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                )
+                        .size(150.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop)
             }
 
             Box(

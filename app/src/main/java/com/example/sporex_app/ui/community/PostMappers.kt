@@ -24,6 +24,7 @@ fun PostResponse.toCommunityPost(): CommunityPost {
             "health" -> PostCategory.HEALTH
             else -> PostCategory.MISC
         },
+        imageUrl = image_url,
         comments = replies.mapIndexed { index, reply ->
             Comment(index, reply.user_name, reply.content)
         }.toMutableList()
