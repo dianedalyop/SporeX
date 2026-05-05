@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.example.sporex_app.R
 import com.example.sporex_app.network.RetrofitClient
@@ -85,6 +87,7 @@ fun CreatePostScreen(
         modifier = modifier
             .fillMaxSize()
             .background(colors.background)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -164,7 +167,7 @@ fun CreatePostScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
+                            .height(140.dp)
                     )
                 }
 
