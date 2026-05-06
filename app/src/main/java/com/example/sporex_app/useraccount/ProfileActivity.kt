@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.sporex_app.R
 import com.example.sporex_app.ui.community.CommunityHP
@@ -149,28 +150,25 @@ private fun ProfileContent(
             contentAlignment = Alignment.BottomEnd
         ) {
 
-            val imageUrl = imageUri?.let {
-                if (it.startsWith("http")) it
-                else "https://sporex.onrender.com$it"
-            }
 
-            if (!imageUrl.isNullOrEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(imageUrl),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(150.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop)
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.profilepicture),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(150.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop)
-            }
+            val imageUrl = imageUri
+                ?.takeIf { it.isNotBlank() }
+                ?.let {
+                    if (it.startsWith("http")) it
+                    else "https://sporex.onrender.com$it"
+                }
+
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Profile image",
+                placeholder = painterResource(id = R.drawable.profilepicture),
+                error = painterResource(id = R.drawable.profilepicture),
+                fallback = painterResource(id = R.drawable.profilepicture),
+                modifier = Modifier
+                    .size(150.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
 
             Box(
                 modifier = Modifier

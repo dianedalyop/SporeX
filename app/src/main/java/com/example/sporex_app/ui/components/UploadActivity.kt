@@ -87,19 +87,17 @@ fun UploadScreen(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxHeight()
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(30.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(700.dp)
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
+                    .fillMaxSize()
+                    .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Back button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start
@@ -109,11 +107,11 @@ fun UploadScreen(
                     }
                 }
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(6.dp))
 
                 Text(
                     "Upload Mould Image",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -121,17 +119,16 @@ fun UploadScreen(
 
                 Text(
                     "Tap the box below to choose a photo from your device. Make sure the mould is clearly visible.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(18.dp))
 
-                // Upload Box Card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(220.dp),
+                        .height(210.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.background
@@ -149,7 +146,9 @@ fun UploadScreen(
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onBackground
                                 )
+
                                 Spacer(Modifier.height(6.dp))
+
                                 Text(
                                     "Supported formats: JPG or PNG",
                                     style = MaterialTheme.typography.bodySmall,
@@ -167,17 +166,17 @@ fun UploadScreen(
                     }
                 }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(14.dp))
 
                 if (selectedImageUri != null) {
                     Text(
                         "Image selected. Press Continue to proceed.",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.weight(1f))
 
                 Button(
                     onClick = { selectedImageUri?.let(onNext) },

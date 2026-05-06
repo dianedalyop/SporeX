@@ -168,6 +168,11 @@ fun DeviceDashboardScreen(
                                 Divider(color = Color.LightGray.copy(alpha = 0.3f), thickness = 1.dp)
 
                                 StatRow(
+                                    label = "Temp",
+                                    value = "${reading?.temp_c?.toInt() ?: "--"}°C"
+                                )
+                                Divider(color = Color.LightGray.copy(alpha = 0.3f), thickness = 1.dp)
+                                StatRow(
                                     label = "Humidity",
                                     value = "${reading?.humidity?.toInt() ?: "--"}%"
                                 )
